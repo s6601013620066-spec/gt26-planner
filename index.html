@@ -81,8 +81,8 @@
     </div>
 
     <script>
-        // ลิงก์ App Script ตัวล่าสุด
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfd9AEia_slNPx9LmQ8SZazKZen7NEHTERbVg9liLYTNV2ZmnfZwcMT9WN9LfrMz3b/exec';
+        // อัปเดตลิงก์ App Script ตัวล่าสุดสำหรับการบันทึกต่อท้าย (Append)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxeMUx9WF76BI4IyydFtwwi2tA1oIF2M7ABOeGt1ULvPL-FpmwKcwAaFUcyvqS2MMRQ/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -97,7 +97,7 @@
             }
 
             const btn = document.getElementById('btnSave');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่งข้อมูล...';
             btn.disabled = true;
 
             const schedule = [
@@ -110,6 +110,7 @@
             let accumulatedShift = 0;
             let nextToSave = null;
 
+            // แสดงผลพยากรณ์บนหน้าเว็บ
             schedule.forEach(item => {
                 const daysUntilEOH = Math.ceil((item.limit - currentEOH) / avgRate);
                 const totalDays = daysUntilEOH + accumulatedShift;
@@ -144,31 +145,26 @@
                 accumulatedShift += item.duration;
             });
 
-            if (nextToSave) {
-                const payload = {
-                    recordDate: baseDateVal,
-                    currentEOH: currentEOH,
-                    avgRate: avgRate,
-                    nextType: nextToSave.type,
-                    startDate: nextToSave.start,
-                    finishDate: nextToSave.finish,
-                    daysLeft: nextToSave.days
-                };
+            // ส่งข้อมูลไปบันทึก (Append) ใน Google Sheets
+            const payload = {
+                recordDate: baseDateVal,
+                currentEOH: currentEOH,
+                avgRate: avgRate
+            };
 
-                try {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        cache: 'no-cache',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    alert("บันทึกและพยากรณ์ข้อมูลลง Google Sheets เรียบร้อยแล้ว!");
-                } catch (e) {
-                    console.error(e);
-                    alert("บันทึกไม่สำเร็จ โปรดตรวจสอบสิทธิ์การเข้าถึง App Script");
-                }
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                alert("เพิ่มข้อมูลใหม่ต่อท้าย Timeline เรียบร้อยแล้ว!");
+            } catch (e) {
+                console.error(e);
+                alert("บันทึกไม่สำเร็จ โปรดตรวจสอบการ Deploy ใน Apps Script");
             }
 
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและคำนวณ';
