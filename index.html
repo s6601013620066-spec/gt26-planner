@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GT26 Maintenance Planner - A-B-A-C Cycle</title>
+    <title>GT26 Maintenance Planner - Full Timeline</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -20,7 +20,7 @@
         <header class="mb-10 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
             <div>
                 <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">GT26 INSPECTION CYCLE</h1>
-                <p class="text-slate-400">การคำนวณตามรอบมาตรฐาน A → B → A → C (ทุกๆ 9,000 EOH)</p>
+                <p class="text-slate-400">แสดงกำหนดการ "เริ่มซ่อม" และ "ซ่อมเสร็จ" รายประเภท</p>
             </div>
         </header>
 
@@ -50,33 +50,45 @@
             <div class="glass-card p-5 border-l-4 border-emerald-500 relative overflow-hidden group">
                 <div class="absolute right-[-10px] top-[-10px] text-emerald-500/10 text-6xl font-bold italic">A1</div>
                 <h3 class="text-emerald-400 font-bold text-sm">TYPE A (1st)</h3>
-                <p class="text-[10px] text-slate-500 mb-3 tracking-widest uppercase">Target: 9,000 EOH</p>
-                <div id="typeA1_days" class="text-2xl font-bold text-white mb-1">-- วัน</div>
-                <div id="typeA1_date" class="text-[12px] text-slate-300 bg-slate-800/50 p-1.5 rounded-lg inline-block">-</div>
+                <p class="text-[10px] text-slate-500 mb-2 tracking-widest uppercase">Target: 9,000 EOH</p>
+                <div id="typeA1_days" class="text-2xl font-bold text-white mb-2">-- วัน</div>
+                <div class="space-y-1">
+                    <div id="typeA1_start" class="text-[11px] text-slate-300 bg-slate-800/50 p-1.5 rounded-lg border border-white/5">เริ่ม: -</div>
+                    <div id="typeA1_finish" class="text-[11px] text-emerald-300 bg-emerald-900/30 p-1.5 rounded-lg border border-emerald-500/20">เสร็จ: -</div>
+                </div>
             </div>
 
             <div class="glass-card p-5 border-l-4 border-amber-500 relative overflow-hidden group">
                 <div class="absolute right-[-10px] top-[-10px] text-amber-500/10 text-6xl font-bold italic">B</div>
                 <h3 class="text-amber-400 font-bold text-sm">TYPE B</h3>
-                <p class="text-[10px] text-slate-500 mb-3 tracking-widest uppercase">Target: 18,000 EOH</p>
-                <div id="typeB_days" class="text-2xl font-bold text-white mb-1">-- วัน</div>
-                <div id="typeB_date" class="text-[12px] text-slate-300 bg-slate-800/50 p-1.5 rounded-lg inline-block">-</div>
+                <p class="text-[10px] text-slate-500 mb-2 tracking-widest uppercase">Target: 18,000 EOH</p>
+                <div id="typeB_days" class="text-2xl font-bold text-white mb-2">-- วัน</div>
+                <div class="space-y-1">
+                    <div id="typeB_start" class="text-[11px] text-slate-300 bg-slate-800/50 p-1.5 rounded-lg border border-white/5">เริ่ม: -</div>
+                    <div id="typeB_finish" class="text-[11px] text-amber-300 bg-amber-900/30 p-1.5 rounded-lg border border-amber-500/20">เสร็จ: -</div>
+                </div>
             </div>
 
             <div class="glass-card p-5 border-l-4 border-emerald-500 relative overflow-hidden group">
                 <div class="absolute right-[-10px] top-[-10px] text-emerald-500/10 text-6xl font-bold italic">A2</div>
                 <h3 class="text-emerald-400 font-bold text-sm">TYPE A (2nd)</h3>
-                <p class="text-[10px] text-slate-500 mb-3 tracking-widest uppercase">Target: 27,000 EOH</p>
-                <div id="typeA2_days" class="text-2xl font-bold text-white mb-1">-- วัน</div>
-                <div id="typeA2_date" class="text-[12px] text-slate-300 bg-slate-800/50 p-1.5 rounded-lg inline-block">-</div>
+                <p class="text-[10px] text-slate-500 mb-2 tracking-widest uppercase">Target: 27,000 EOH</p>
+                <div id="typeA2_days" class="text-2xl font-bold text-white mb-2">-- วัน</div>
+                <div class="space-y-1">
+                    <div id="typeA2_start" class="text-[11px] text-slate-300 bg-slate-800/50 p-1.5 rounded-lg border border-white/5">เริ่ม: -</div>
+                    <div id="typeA2_finish" class="text-[11px] text-emerald-300 bg-emerald-900/30 p-1.5 rounded-lg border border-emerald-500/20">เสร็จ: -</div>
+                </div>
             </div>
 
             <div class="glass-card p-5 border-l-4 border-red-500 relative overflow-hidden group">
                 <div class="absolute right-[-10px] top-[-10px] text-red-500/10 text-6xl font-bold italic">C</div>
                 <h3 class="text-red-400 font-bold text-sm">TYPE C (MAJOR)</h3>
-                <p class="text-[10px] text-slate-500 mb-3 tracking-widest uppercase">Target: 36,000 EOH</p>
-                <div id="typeC_days" class="text-2xl font-bold text-white mb-1">-- วัน</div>
-                <div id="typeC_date" class="text-[12px] text-slate-300 bg-slate-800/50 p-1.5 rounded-lg inline-block">-</div>
+                <p class="text-[10px] text-slate-500 mb-2 tracking-widest uppercase">Target: 36,000 EOH</p>
+                <div id="typeC_days" class="text-2xl font-bold text-white mb-2">-- วัน</div>
+                <div class="space-y-1">
+                    <div id="typeC_start" class="text-[11px] text-slate-300 bg-slate-800/50 p-1.5 rounded-lg border border-white/5">เริ่ม: -</div>
+                    <div id="typeC_finish" class="text-[11px] text-red-300 bg-red-900/30 p-1.5 rounded-lg border border-red-500/20">เสร็จ: -</div>
+                </div>
             </div>
         </div>
     </div>
@@ -94,31 +106,48 @@
             }
 
             const baseDate = new Date(baseDateVal);
-            const targets = [
-                { id: 'typeA1', limit: 9000 },
-                { id: 'typeB', limit: 18000 },
-                { id: 'typeA2', limit: 27000 },
-                { id: 'typeC', limit: 36000 }
+            
+            const schedule = [
+                { id: 'typeA1', limit: 9000, duration: 8 },
+                { id: 'typeB', limit: 18000, duration: 9 },
+                { id: 'typeA2', limit: 27000, duration: 8 },
+                { id: 'typeC', limit: 36000, duration: 37 }
             ];
 
-            targets.forEach(target => {
-                const remainingEOH = target.limit - currentEOH;
-                const daysLeft = Math.ceil(remainingEOH / avgRate);
-                const targetDate = new Date(baseDate);
-                targetDate.setDate(baseDate.getDate() + daysLeft);
+            let accumulatedShiftDays = 0;
+
+            schedule.forEach((item) => {
+                const dayEl = document.getElementById(`${item.id}_days`);
+                const startEl = document.getElementById(`${item.id}_start`);
+                const finishEl = document.getElementById(`${item.id}_finish`);
                 
-                const dayEl = document.getElementById(`${target.id}_days`);
-                const dateEl = document.getElementById(`${target.id}_date`);
+                const remainingEOH = item.limit - currentEOH;
+                const daysUntilEOH = Math.ceil(remainingEOH / avgRate);
+                
+                const totalDaysToStart = daysUntilEOH + accumulatedShiftDays;
+                
+                // คำนวณวันที่เริ่ม
+                const startDate = new Date(baseDate);
+                startDate.setDate(baseDate.getDate() + totalDaysToStart);
+
+                // คำนวณวันที่เสร็จ (วันเริ่ม + ระยะเวลาซ่อม)
+                const finishDate = new Date(startDate);
+                finishDate.setDate(startDate.getDate() + item.duration);
 
                 if (remainingEOH > 0) {
-                    dayEl.innerText = `${daysLeft.toLocaleString()} วัน`;
+                    dayEl.innerText = `${totalDaysToStart.toLocaleString()} วัน`;
                     dayEl.classList.remove('text-red-400');
-                    dateEl.innerText = targetDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+                    startEl.innerText = "เริ่ม: " + startDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+                    finishEl.innerText = "เสร็จ: " + finishDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
                 } else {
-                    dayEl.innerText = "DONE / OVERDUE";
+                    dayEl.innerText = "OVERDUE";
                     dayEl.classList.add('text-red-400');
-                    dateEl.innerText = "ผ่านมาเมื่อ: " + targetDate.toLocaleDateString('th-TH');
+                    startEl.innerText = "ผ่านมาแล้ว";
+                    finishEl.innerText = "-";
                 }
+
+                // สะสมวันซ่อมเพื่อ Shift รอบถัดไป
+                accumulatedShiftDays += item.duration;
             });
         }
     </script>
