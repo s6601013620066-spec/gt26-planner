@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT26 Maintenance Planner - Professional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&display=swap');
+        body { 
+            background-color: #0f172a; 
+            font-family: 'Chakra Petch', sans-serif; 
+            color: #e2e8f0;
+        }
+        .glass-card { 
+            background: rgba(30, 41, 59, 0.7); 
+            backdrop-filter: blur(12px); 
+            border-radius: 1.25rem; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+        .input-field {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                    GT26 MAINTENANCE SCHEDULER
+                </h1>
+                <p class="text-slate-400">ระบบคำนวณแผนการซ่อมบำรุงตามค่า EOH และวันที่บันทึก</p>
+            </div>
+            <div class="bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-xl text-blue-400 text-sm">
+                <i class="fas fa-industry mr-2"></i> North Bangkok Block 2
+            </div>
+        </header>
+
+        <div class="glass-card p-8 mb-8 shadow-2xl">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">วันที่บันทึกค่า EOH</label>
+                    <input type="date" id="baseDate" 
+                        class="input-field w-full p-3 rounded-xl text-center">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">Current EOH (Hrs)</label>
+                    <input type="number" id="currentEOH" placeholder="0.00" 
+                        class="input-field w-full p-3 rounded-xl text-center text-xl font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 text-center">Avg. EOH / Day</label>
+                    <input type="number" id="avgEOHPerDay" value="24"
+                        class="input-field w-full p-3 rounded-xl text-center">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="calculatePlan()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg shadow-blue-600/20">
+                        <i class="fas fa-calculator mr-2"></i> คำนวณวันที่
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="results" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-card p-6 border-l-4 border-emerald-500 relative overflow-hidden group">
+                <div class="absolute right-[-10px] top-[-10px] text-emerald-500/10 text-7xl font-bold italic group-hover:scale-110 transition-transform">A</div>
+                <h3 class="text-emerald-400 font-bold mb-1">TYPE A INSPECTION</h3>
+                <p class="text-[10px] text-slate-500 mb-4 tracking-widest uppercase">Limit: 9,000 EOH</p>
+                <div id="typeA_days" class="text-3xl font-bold text-white mb-1">-- วัน</div>
+                <div id="typeA_date" class="text-sm text-slate-300 font-medium bg-slate-800/50 p-2 rounded-lg inline-block">-</div>
+            </div>
+
+            <div class="glass-card p-6 border-l-4 border-amber-500 relative overflow-hidden group">
+                <div class="absolute right-[-10px] top-[-10px] text-amber-500/10 text-7xl font-bold italic group-hover:scale-110 transition-transform">B</div>
+                <h3 class="text-amber-400 font-bold mb-1">TYPE B INSPECTION</h3>
+                <p class="text-[10px] text-slate-500 mb-4 tracking-widest uppercase">Limit: 18,000 EOH</p>
+                <div id="typeB_days" class="text-3xl font-bold text-white mb-1">-- วัน</div>
+                <div id="typeB_date" class="text-sm text-slate-300 font-medium bg-slate-800/50 p-2 rounded-lg inline-block">-</div>
+            </div>
+
+            <div class="glass-card p-6 border-l-4 border-red-500 relative overflow-hidden group">
+                <div class="absolute right-[-10px] top-[-10px] text-red-500/10 text-7xl font-bold italic group-hover:scale-110 transition-transform">C</div>
+                <h3 class="text-red-400 font-bold mb-1">TYPE C (MAJOR)</h3>
+                <p class="text-[10px] text-slate-500 mb-4 tracking-widest uppercase">Limit: 36,000 EOH</p>
+                <div id="typeC_days" class="text-3xl font-bold text-white mb-1">-- วัน</div>
+                <div id="typeC_date" class="text-sm text-slate-300 font-medium bg-slate-800/50 p-2 rounded-lg inline-block">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ตั้งค่าวันที่เริ่มต้นเป็นวันนี้โดยอัตโนมัติ
+        document.getElementById('baseDate').valueAsDate = new Date();
+
+        function calculatePlan() {
+            const baseDateVal = document.getElementById('baseDate').value;
+            const currentEOH = parseFloat(document.getElementById('currentEOH').value);
+            const avgRate = parseFloat(document.getElementById('avgEOHPerDay').value);
+
+            if (!baseDateVal || isNaN(currentEOH) || isNaN(avgRate) || avgRate <= 0) {
+                alert("กรุณาระบุข้อมูลวันที่และ EOH ให้ถูกต้อง");
+                return;
+            }
+
+            const baseDate = new Date(baseDateVal);
+            const targets = [
+                { id: 'typeA', limit: 9000 },
+                { id: 'typeB', limit: 18000 },
+                { id: 'typeC', limit: 36000 }
+            ];
+
+            targets.forEach(target => {
+                const remainingEOH = target.limit - currentEOH;
+                const daysLeft = Math.ceil(remainingEOH / avgRate);
+                
+                const targetDate = new Date(baseDate);
+                targetDate.setDate(baseDate.getDate() + daysLeft);
+                
+                const dayEl = document.getElementById(`${target.id}_days`);
+                const dateEl = document.getElementById(`${target.id}_date`);
+
+                if (remainingEOH > 0) {
+                    dayEl.innerText = `${daysLeft.toLocaleString()} วัน`;
+                    dayEl.classList.remove('text-red-500');
+                    dateEl.innerText = targetDate.toLocaleDateString('th-TH', { 
+                        weekday: 'short', 
+                        day: 'numeric', 
+                        month: 'long', 
+                        year: 'numeric' 
+                    });
+                } else {
+                    dayEl.innerText = "OVERDUE!";
+                    dayEl.classList.add('text-red-500');
+                    dateEl.innerText = "ถึงกำหนดตั้งแต่วันที่ " + targetDate.toLocaleDateString('th-TH');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
