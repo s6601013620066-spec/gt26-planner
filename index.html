@@ -81,8 +81,8 @@
     </div>
 
     <script>
-        // ลิงก์ใหม่ที่คุณส่งมาครับ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLUiZFI5ciotEnEoSwoNWxA_2Wduj9mZCgzNbPV3LRJE6y4D5HYNWN1gSFTG5IOVHs/exec';
+        // ลิงก์ใหม่ที่คุณส่งมา
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwrl3iVUQnvu8vBTt_cO5EzU2njrcz0Ucfn1OCNIPJ7eHPEP05xgIDG58mOFLR56rH9/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -156,7 +156,6 @@
                 };
 
                 try {
-                    // ใช้ mode: 'no-cors' เพื่อป้องกันปัญหา Browser บล็อกการส่งข้อมูลข้าม Domain ในบางกรณี
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
@@ -165,11 +164,10 @@
                         body: JSON.stringify(payload)
                     });
                     
-                    // เนื่องจาก no-cors จะมองไม่เห็น response ให้ถือว่าส่งสำเร็จถ้าไม่เด้งไป catch
-                    alert("บันทึกข้อมูลเรียบร้อยแล้ว! ข้อมูลจะปรากฏใน Google Sheets แถวที่ 2");
+                    alert("บันทึกและอัปเดต Timeline เรียบร้อยแล้ว!");
                 } catch (e) {
                     console.error(e);
-                    alert("การเชื่อมต่อมีปัญหา แต่คำนวณหน้าเว็บให้แล้ว");
+                    alert("บันทึกไม่สำเร็จ โปรดตรวจสอบการ Deploy ใน Apps Script");
                 }
             }
 
