@@ -81,8 +81,8 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ App Script ใหม่ที่ส่งมา
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxcRqdZIgmJf2rIyjxVDVZhmvmtOcbYANXuYIWOHaaoiHKwXk7m3b53vEa5BecPua5q/exec';
+        // ลิงก์ App Script ตัวล่าสุด
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfd9AEia_slNPx9LmQ8SZazKZen7NEHTERbVg9liLYTNV2ZmnfZwcMT9WN9LfrMz3b/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -164,10 +164,10 @@
                         body: JSON.stringify(payload)
                     });
                     
-                    alert("บันทึกและอัปเดต Timeline เรียบร้อยแล้ว!");
+                    alert("บันทึกและพยากรณ์ข้อมูลลง Google Sheets เรียบร้อยแล้ว!");
                 } catch (e) {
                     console.error(e);
-                    alert("บันทึกไม่สำเร็จ โปรดตรวจสอบการ Deploy ใน Apps Script");
+                    alert("บันทึกไม่สำเร็จ โปรดตรวจสอบสิทธิ์การเข้าถึง App Script");
                 }
             }
 
