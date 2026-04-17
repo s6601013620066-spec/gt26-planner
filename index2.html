@@ -1,11 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>GT26 Maintenance Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&display=swap');
+        body { background-color: #0f172a; font-family: 'Chakra Petch', sans-serif; color: #e2e8f0; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border-radius: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-field { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s; }
+        .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); outline: none; }
+    </style>
 </head>
-<body>
-    
+<body class="p-4 md:p-10">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent uppercase">Maintenance Report</h1>
+                <p class="text-slate-400">รายงานผลการซ่อมบำรุงตามแผน</p>
+            </div>
+            <button onclick="window.location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl transition-all border border-slate-700 flex items-center">
+                <i class="fas fa-chevron-left mr-2"></i> กลับหน้าหลัก
+            </button>
+        </header>
+
+        <div class="glass-card p-8 shadow-2xl border-t-4 border-emerald-500">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-emerald-400 uppercase mb-2 tracking-wider">วันที่บันทึกรายงาน</label>
+                    <input type="date" id="reportDate" class="input-field w-full md:w-1/3 p-3 rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">Type (ประเภทการซ่อม)</label>
+                    <select id="maintType" class="input-field w-full p-3 rounded-xl appearance-none">
+                        <option value="A1">Type A1 (9k)</option>
+                        <option value="B">Type B (18k)</option>
+                        <option value="A2">Type A2 (27k)</option>
+                        <option value="C">Type C (36k)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">ครั้งที่ (Set)</label>
+                    <input type="number" id="maintSet" placeholder="เช่น 1" class="input-field w-full p-3 rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-blue-400 uppercase mb-2 tracking-wider">Start Date (เริ่ม)</label>
+                    <input type="date" id="startDate" class="input-field w-full p-3 rounded-xl">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-blue-400 uppercase mb-2 tracking-wider">Finish Date (เสร็จ)</label>
+                    <input type="date" id="finishDate" class="input-field w-full p-3 rounded-xl">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">เวลาที่ใช้ทั้งหมด (วัน)</label>
+                    <input type="number" id="durationDays" placeholder="0" class="input-field w-full md:w-1/4 p-3 rounded-xl text-xl font-bold text-emerald-400">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">Comment (รายละเอียดเพิ่มเติม)</label>
+                    <textarea id="comment" rows="4" placeholder="ระบุรายละเอียดการซ่อมบำรุง..." class="input-field w-full p-4 rounded-xl resize-none"></textarea>
+                </div>
+
+                <div class="md:col-span-2 mt-4">
+                    <button onclick="submitReport()" id="btnSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center text-lg">
+                        <i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ใส่ SCRIPT_URL ที่ได้จาก Google Apps Script ของ Sheet ใบใหม่ที่นี่
+        const REPORT_SCRIPT_URL = 'ใส่_URL_แอปสคริปต์_ใหม่ที่นี่';
+
+        // ตั้งค่าวันที่เริ่มต้นเป็นวันนี้
+        document.getElementById('reportDate').valueAsDate = new Date();
+
+        async function submitReport() {
+            const btn = document.getElementById('btnSubmit');
+            const data = {
+                reportDate: document.getElementById('reportDate').value,
+                type: document.getElementById('maintType').value,
+                set: document.getElementById('maintSet').value,
+                start: document.getElementById('startDate').value,
+                finish: document.getElementById('finishDate').value,
+                duration: document.getElementById('durationDays').value,
+                comment: document.getElementById('comment').value
+            };
+
+            // ตรวจสอบข้อมูลเบื้องต้น
+            if (!data.type || !data.set || !data.start || !data.finish) {
+                alert("กรุณากรอกข้อมูลหลักให้ครบถ้วน");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
+
+            try {
+                // ส่งข้อมูลไปยัง Google Sheets
+                await fetch(REPORT_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                alert("บันทึกรายงานการซ่อมบำรุงเรียบร้อยแล้ว!");
+                // ล้างฟอร์มหลังจากบันทึกเสร็จ (เลือกเปิดใช้งานได้)
+                // location.reload(); 
+            } catch (error) {
+                console.error(error);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน';
+            }
+        }
+    </script>
 </body>
 </html>
