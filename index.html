@@ -82,8 +82,8 @@
     </div>
 
     <script>
-        // อัปเดต URL เป็นลิงก์ใหม่ที่คุณให้มาเรียบร้อยแล้ว
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxLp3jMZ91bQe6XjyC7f6--vj6gskleB8jN-FpGStPimkFJCscnLyNc42u-_Wx9Velk/exec';
+        // อัปเดต URL เป็นลิงก์ใหม่ล่าสุดที่คุณให้มาเรียบร้อยแล้ว
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1BgEttijmE2lsFWujqNlWDzsPrJ2Ry2YkK1WDAoTBWwxwfQwK1U2lDBG2Pk7ECWyJ/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -102,16 +102,17 @@
             btn.disabled = true;
 
             const schedule = [
-                { id: 'typeA1', limit: 9000, duration: 8 },
-                { id: 'typeB', limit: 18000, duration: 9 },
-                { id: 'typeA2', limit: 27000, duration: 8 },
-                { id: 'typeC', limit: 36000, duration: 37 }
+                { id: 'typeA1', name: 'Type A1', limit: 9000, duration: 8 },
+                { id: 'typeB', name: 'Type B', limit: 18000, duration: 9 },
+                { id: 'typeA2', name: 'Type A2', limit: 27000, duration: 8 },
+                { id: 'typeC', name: 'Type C', limit: 36000, duration: 37 }
             ];
 
             const baseDate = new Date(baseDateInput);
             let lastFinishDate = null;
             let isPreviousOverdue = false;
 
+            // การคำนวณหน้าเว็บ (Set 1)
             schedule.forEach((item, index) => {
                 const dayEl = document.getElementById(`${item.id}_days`);
                 const startEl = document.getElementById(`${item.id}_start`);
@@ -134,17 +135,14 @@
                     startDate.setDate(baseDate.getDate() + daysUntil);
                     isPreviousOverdue = false;
                 } else {
-                    // ปรับ: เริ่มนับ EOH ทันทีจากวันที่ซ่อมเสร็จของรอบก่อนหน้า
                     let daysToRun = Math.floor(9000 / avgRate);
                     startDate = new Date(lastFinishDate);
                     startDate.setDate(lastFinishDate.getDate() + daysToRun);
                 }
 
-                // ปรับ: วันเสร็จสิ้นบวก Duration เต็ม เพื่อให้จบวันที่ 27 (กรณีเริ่ม 18 ซ่อม 9 วัน)
                 const finishDate = new Date(startDate);
                 finishDate.setDate(startDate.getDate() + item.duration);
 
-                // ปรับ: นับรวมวันปัจจุบัน (+1) เพื่อให้ได้ 367 วันตามเป้าหมาย
                 const diffTime = startDate.getTime() - baseDate.getTime();
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
@@ -155,17 +153,24 @@
                 lastFinishDate = new Date(finishDate);
             });
 
+            // ส่งข้อมูลไปบันทึก (App Script จะจัดการ Set 1, 2, 3 ตาม Logic ที่เราแก้ไว้ใน .gs)
             try {
-                const payload = { recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate };
+                const payload = { 
+                    recordDate: baseDateInput, 
+                    currentEOH: currentEOH, 
+                    avgRate: avgRate 
+                };
+                
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     body: JSON.stringify(payload)
                 });
-                alert("บันทึกสำเร็จ! ข้อมูลถูกส่งไปยัง Google Sheet ทั้ง 3 เซ็ทเรียบร้อยแล้ว");
+                
+                alert("บันทึกและพยากรณ์สำเร็จ! ข้อมูลทั้ง 3 เซ็ทถูกจัดเรียงใน Google Sheets เรียบร้อยแล้ว");
             } catch (e) {
                 console.error(e);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับ Google Sheets");
+                alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
             }
 
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและพยากรณ์';
