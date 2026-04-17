@@ -6,14 +6,22 @@
     <title>GT26 Maintenance Report</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&display=swap');
         body { background-color: #0f172a; font-family: 'Chakra Petch', sans-serif; color: #e2e8f0; }
         .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border-radius: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.1); }
         .input-field { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s; }
         .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); outline: none; }
-        /* สไตล์พิเศษสำหรับ Webkit (Chrome/Safari) ให้ไอคอนนาฬิกาสวยงาม */
         input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        
+        /* ปรับแต่งสีของ SweetAlert2 ให้เข้ากับธีมมืด */
+        .swal2-popup {
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+            border-radius: 1.25rem !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -81,7 +89,7 @@
                 </div>
 
                 <div class="md:col-span-2 mt-4">
-                    <button onclick="submitReport()" id="btnSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center text-lg">
+                    <button onclick="confirmAndSubmit()" id="btnSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center text-lg">
                         <i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน
                     </button>
                 </div>
@@ -90,12 +98,10 @@
     </div>
 
     <script>
-        // ใส่ SCRIPT_URL ของ Google Apps Script ที่ได้รับมาเรียบร้อยแล้ว
         const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw5KG6VlwCBk7ccIPmkUW-Y_yN4u0PmL6WXmM0eP4x91zpgLRuXGgwvuIlv2ydW2Ed/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
-        // ฟังก์ชันคำนวณจำนวนวันอัตโนมัติ
         function calculateDuration() {
             const startDateVal = document.getElementById('startDate').value;
             const startTimeVal = document.getElementById('startTime').value;
@@ -105,7 +111,6 @@
             if (startDateVal && finishDateVal) {
                 const start = new Date(`${startDateVal}T${startTimeVal || '00:00'}`);
                 const finish = new Date(`${finishDateVal}T${finishTimeVal || '00:00'}`);
-                
                 const diffInMs = finish - start;
                 
                 if (diffInMs < 0) {
@@ -113,47 +118,65 @@
                     document.getElementById('durationDays').classList.replace('text-emerald-400', 'text-red-400');
                     return;
                 }
-
-                // แปลง ms เป็นวัน (1 วัน = 86,400,000 ms)
                 const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-                
-                // แสดงผลทศนิยม 2 ตำแหน่ง หากเป็นเลขลงตัวจะแสดงเป็นจำนวนเต็ม
                 document.getElementById('durationDays').value = Number.isInteger(diffInDays) ? diffInDays : diffInDays.toFixed(2);
                 document.getElementById('durationDays').classList.replace('text-red-400', 'text-emerald-400');
             }
         }
 
-        // เพิ่ม Event Listeners ให้ทุกช่องที่เกี่ยวข้องกับการคำนวณ
         ['startDate', 'startTime', 'finishDate', 'finishTime'].forEach(id => {
             document.getElementById(id).addEventListener('change', calculateDuration);
         });
 
-        async function submitReport() {
-            const btn = document.getElementById('btnSubmit');
+        // 1. ฟังก์ชันใหม่สำหรับสร้างบล็อกยืนยันก่อนบันทึก
+        async function confirmAndSubmit() {
             const duration = document.getElementById('durationDays').value;
+            const maintType = document.getElementById('maintType').value;
+            const maintSet = document.getElementById('maintSet').value;
+            const startDate = document.getElementById('startDate').value;
 
+            // ตรวจสอบเบื้องต้น
             if (duration === "รูปแบบวันที่ไม่ถูกต้อง" || parseFloat(duration) < 0) {
-                alert("กรุณาตรวจสอบวันและเวลาเริ่มต้น/สิ้นสุดให้ถูกต้อง");
+                Swal.fire({ icon: 'error', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาตรวจสอบวันและเวลาให้ถูกต้อง', confirmButtonColor: '#10b981' });
+                return;
+            }
+            if (!maintType || !maintSet || !startDate) {
+                Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน', confirmButtonColor: '#10b981' });
                 return;
             }
 
+            // แสดง Pop-up ยืนยัน
+            const result = await Swal.fire({
+                title: 'ยืนยันการบันทึกข้อมูล?',
+                text: `คุณกำลังบันทึกรายงาน Type ${maintType} ครั้งที่ ${maintSet}`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'ใช่, บันทึกเลย',
+                cancelButtonText: 'ยกเลิกเพื่อแก้ไข'
+            });
+
+            if (result.isConfirmed) {
+                executeSubmit(); // ไปยังขั้นตอนการบันทึกจริง
+            }
+        }
+
+        // 2. ฟังก์ชันส่งข้อมูลจริง (ปรับปรุงจาก submitReport เดิม)
+        async function executeSubmit() {
+            const btn = document.getElementById('btnSubmit');
             const data = {
                 reportDate: document.getElementById('reportDate').value,
                 type: document.getElementById('maintType').value,
                 set: document.getElementById('maintSet').value,
                 start: `${document.getElementById('startDate').value} ${document.getElementById('startTime').value}`,
                 finish: `${document.getElementById('finishDate').value} ${document.getElementById('finishTime').value}`,
-                duration: duration,
+                duration: document.getElementById('durationDays').value,
                 comment: document.getElementById('comment').value
             };
 
-            if (!data.type || !data.set || !document.getElementById('startDate').value) {
-                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-                return;
-            }
-
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึกข้อมูล...';
 
             try {
                 await fetch(REPORT_SCRIPT_URL, {
@@ -162,12 +185,232 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                alert("บันทึกรายงานเรียบร้อยแล้ว!");
-                // เคลียร์ค่าหลังจากบันทึกสำเร็จ (ยกเว้นวันที่บันทึก)
-                document.getElementById('comment').value = '';
+
+                // 3. แสดงรูปติ๊กถูกสำเร็จและเด้งกลับหน้าหลัก
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'บันทึกเรียบร้อย!',
+                    text: 'ข้อมูลรายงานของคุณถูกเก็บลงฐานข้อมูลแล้ว',
+                    timer: 2000,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#10b981'
+                });
+
+                window.location.href = 'index.html'; // เด้งกลับหน้าแรก
+
             } catch (error) {
                 console.error(error);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', confirmButtonColor: '#10b981' });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน';
+            }
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT26 Maintenance Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&display=swap');
+        body { background-color: #0f172a; font-family: 'Chakra Petch', sans-serif; color: #e2e8f0; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border-radius: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-field { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s; }
+        .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); outline: none; }
+        input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        
+        /* ปรับแต่งสีของ SweetAlert2 ให้เข้ากับธีมมืด */
+        .swal2-popup {
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+            border-radius: 1.25rem !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent uppercase">Maintenance Report</h1>
+                <p class="text-slate-400">รายงานผลการซ่อมบำรุงตามแผน</p>
+            </div>
+            <button onclick="window.location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl transition-all border border-slate-700 flex items-center">
+                <i class="fas fa-chevron-left mr-2"></i> กลับหน้าหลัก
+            </button>
+        </header>
+
+        <div class="glass-card p-8 shadow-2xl border-t-4 border-emerald-500">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-emerald-400 uppercase mb-2 tracking-wider">วันที่บันทึกรายงาน</label>
+                    <input type="date" id="reportDate" class="input-field w-full md:w-1/3 p-3 rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">Type (ประเภทการซ่อม)</label>
+                    <select id="maintType" class="input-field w-full p-3 rounded-xl appearance-none">
+                        <option value="A1">Type A1 (9k)</option>
+                        <option value="B">Type B (18k)</option>
+                        <option value="A2">Type A2 (27k)</option>
+                        <option value="C">Type C (36k)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">ครั้งที่ (Set)</label>
+                    <input type="number" id="maintSet" placeholder="เช่น 1" class="input-field w-full p-3 rounded-xl text-center">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-blue-400 uppercase tracking-wider">Start (เริ่มต้น)</label>
+                    <div class="flex gap-2">
+                        <input type="date" id="startDate" class="input-field flex-1 p-3 rounded-xl">
+                        <input type="time" id="startTime" value="08:00" class="input-field w-32 p-3 rounded-xl text-center">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-blue-400 uppercase tracking-wider">Finish (เสร็จสิ้น)</label>
+                    <div class="flex gap-2">
+                        <input type="date" id="finishDate" class="input-field flex-1 p-3 rounded-xl">
+                        <input type="time" id="finishTime" value="17:00" class="input-field w-32 p-3 rounded-xl text-center">
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">เวลาที่ใช้ทั้งหมด (วัน)</label>
+                    <div class="flex items-center gap-4">
+                        <input type="text" id="durationDays" value="0" readonly class="input-field w-full md:w-1/3 p-3 rounded-xl text-2xl font-bold text-emerald-400 bg-transparent border-none">
+                        <span class="text-slate-500 text-sm"><i class="fas fa-magic mr-1"></i> คำนวณให้อัตโนมัติ</span>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">Comment (รายละเอียดเพิ่มเติม)</label>
+                    <textarea id="comment" rows="4" placeholder="ระบุรายละเอียดการซ่อมบำรุง..." class="input-field w-full p-4 rounded-xl resize-none"></textarea>
+                </div>
+
+                <div class="md:col-span-2 mt-4">
+                    <button onclick="confirmAndSubmit()" id="btnSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center text-lg">
+                        <i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw5KG6VlwCBk7ccIPmkUW-Y_yN4u0PmL6WXmM0eP4x91zpgLRuXGgwvuIlv2ydW2Ed/exec';
+
+        document.getElementById('reportDate').valueAsDate = new Date();
+
+        function calculateDuration() {
+            const startDateVal = document.getElementById('startDate').value;
+            const startTimeVal = document.getElementById('startTime').value;
+            const finishDateVal = document.getElementById('finishDate').value;
+            const finishTimeVal = document.getElementById('finishTime').value;
+
+            if (startDateVal && finishDateVal) {
+                const start = new Date(`${startDateVal}T${startTimeVal || '00:00'}`);
+                const finish = new Date(`${finishDateVal}T${finishTimeVal || '00:00'}`);
+                const diffInMs = finish - start;
+                
+                if (diffInMs < 0) {
+                    document.getElementById('durationDays').value = "รูปแบบวันที่ไม่ถูกต้อง";
+                    document.getElementById('durationDays').classList.replace('text-emerald-400', 'text-red-400');
+                    return;
+                }
+                const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+                document.getElementById('durationDays').value = Number.isInteger(diffInDays) ? diffInDays : diffInDays.toFixed(2);
+                document.getElementById('durationDays').classList.replace('text-red-400', 'text-emerald-400');
+            }
+        }
+
+        ['startDate', 'startTime', 'finishDate', 'finishTime'].forEach(id => {
+            document.getElementById(id).addEventListener('change', calculateDuration);
+        });
+
+        // 1. ฟังก์ชันใหม่สำหรับสร้างบล็อกยืนยันก่อนบันทึก
+        async function confirmAndSubmit() {
+            const duration = document.getElementById('durationDays').value;
+            const maintType = document.getElementById('maintType').value;
+            const maintSet = document.getElementById('maintSet').value;
+            const startDate = document.getElementById('startDate').value;
+
+            // ตรวจสอบเบื้องต้น
+            if (duration === "รูปแบบวันที่ไม่ถูกต้อง" || parseFloat(duration) < 0) {
+                Swal.fire({ icon: 'error', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาตรวจสอบวันและเวลาให้ถูกต้อง', confirmButtonColor: '#10b981' });
+                return;
+            }
+            if (!maintType || !maintSet || !startDate) {
+                Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน', confirmButtonColor: '#10b981' });
+                return;
+            }
+
+            // แสดง Pop-up ยืนยัน
+            const result = await Swal.fire({
+                title: 'ยืนยันการบันทึกข้อมูล?',
+                text: `คุณกำลังบันทึกรายงาน Type ${maintType} ครั้งที่ ${maintSet}`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'ใช่, บันทึกเลย',
+                cancelButtonText: 'ยกเลิกเพื่อแก้ไข'
+            });
+
+            if (result.isConfirmed) {
+                executeSubmit(); // ไปยังขั้นตอนการบันทึกจริง
+            }
+        }
+
+        // 2. ฟังก์ชันส่งข้อมูลจริง (ปรับปรุงจาก submitReport เดิม)
+        async function executeSubmit() {
+            const btn = document.getElementById('btnSubmit');
+            const data = {
+                reportDate: document.getElementById('reportDate').value,
+                type: document.getElementById('maintType').value,
+                set: document.getElementById('maintSet').value,
+                start: `${document.getElementById('startDate').value} ${document.getElementById('startTime').value}`,
+                finish: `${document.getElementById('finishDate').value} ${document.getElementById('finishTime').value}`,
+                duration: document.getElementById('durationDays').value,
+                comment: document.getElementById('comment').value
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึกข้อมูล...';
+
+            try {
+                await fetch(REPORT_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                // 3. แสดงรูปติ๊กถูกสำเร็จและเด้งกลับหน้าหลัก
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'บันทึกเรียบร้อย!',
+                    text: 'ข้อมูลรายงานของคุณถูกเก็บลงฐานข้อมูลแล้ว',
+                    timer: 2000,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#10b981'
+                });
+
+                window.location.href = 'index.html'; // เด้งกลับหน้าแรก
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', confirmButtonColor: '#10b981' });
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน';
