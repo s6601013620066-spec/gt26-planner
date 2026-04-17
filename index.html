@@ -82,8 +82,8 @@
     </div>
 
     <script>
-        // อัปเดต URL เป็นลิงก์ใหม่ล่าสุดที่คุณให้มาเรียบร้อยแล้ว
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1BgEttijmE2lsFWujqNlWDzsPrJ2Ry2YkK1WDAoTBWwxwfQwK1U2lDBG2Pk7ECWyJ/exec';
+        // อัปเดตลิงก์ App Script ตัวใหม่ที่คุณให้มาเรียบร้อยแล้ว
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4444bcYZeLsxfxVROXj89HHQSwF8xqqFJ8cCO5e4KO9kslS9LF_GLoaThC3kU52GA/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -101,6 +101,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังประมวลผล...';
             btn.disabled = true;
 
+            // กำหนดลำดับการซ่อม (Set 1)
             const schedule = [
                 { id: 'typeA1', name: 'Type A1', limit: 9000, duration: 8 },
                 { id: 'typeB', name: 'Type B', limit: 18000, duration: 9 },
@@ -112,7 +113,7 @@
             let lastFinishDate = null;
             let isPreviousOverdue = false;
 
-            // การคำนวณหน้าเว็บ (Set 1)
+            // --- ส่วนที่ 1: การคำนวณและแสดงผลบนหน้าจอ (UI Update) ---
             schedule.forEach((item, index) => {
                 const dayEl = document.getElementById(`${item.id}_days`);
                 const startEl = document.getElementById(`${item.id}_start`);
@@ -135,6 +136,7 @@
                     startDate.setDate(baseDate.getDate() + daysUntil);
                     isPreviousOverdue = false;
                 } else {
+                    // ระยะวิ่งระหว่างรอบคือ 9000 EOH
                     let daysToRun = Math.floor(9000 / avgRate);
                     startDate = new Date(lastFinishDate);
                     startDate.setDate(lastFinishDate.getDate() + daysToRun);
@@ -153,7 +155,7 @@
                 lastFinishDate = new Date(finishDate);
             });
 
-            // ส่งข้อมูลไปบันทึก (App Script จะจัดการ Set 1, 2, 3 ตาม Logic ที่เราแก้ไว้ใน .gs)
+            // --- ส่วนที่ 2: ส่งข้อมูลไปยัง App Script เพื่อบันทึก Set 1-3 ลง Sheet ---
             try {
                 const payload = { 
                     recordDate: baseDateInput, 
@@ -167,7 +169,7 @@
                     body: JSON.stringify(payload)
                 });
                 
-                alert("บันทึกและพยากรณ์สำเร็จ! ข้อมูลทั้ง 3 เซ็ทถูกจัดเรียงใน Google Sheets เรียบร้อยแล้ว");
+                alert("บันทึกสำเร็จ! ข้อมูล Set 1-3 ถูกส่งไปยัง Google Sheets เรียบร้อยแล้ว");
             } catch (e) {
                 console.error(e);
                 alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
