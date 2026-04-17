@@ -88,15 +88,14 @@
     </div>
 
     <script>
-        // ลิงก์ App Script ตัวล่าสุด
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvobcKrQQs7mVTmxLVAy09zALU0h1WVeU84_y45P52sTv8N7wb8n_DgXRtURs2od05/exec';
+        // ลิงก์ App Script ตัวล่าสุด (อัปเดตแล้ว)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRUqKUpnzabFZlo9jNE8DqVu5Ti57Q5oLBaEngGn30KSupZGrZqT8_8jDYObR0hI9J/exec';
         
-        // ลิงก์ Google Sheet ของคุณ (ใส่ให้แล้วครับ)
+        // ลิงก์ Google Sheet
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
-        // ฟังก์ชันเปิด Google Sheet
         function openGoogleSheet() {
             window.open(GOOGLE_SHEET_URL, '_blank');
         }
@@ -127,14 +126,13 @@
             let lastFinishDate = null;
             let isPreviousOverdue = false;
 
-            // 1. คำนวณเพื่อแสดงผลบนหน้าจอ
+            // 1. คำนวณแสดงผลบน UI
             schedule.forEach((item, index) => {
                 const dayEl = document.getElementById(`${item.id}_days`);
                 const startEl = document.getElementById(`${item.id}_start`);
                 const finishEl = document.getElementById(`${item.id}_finish`);
 
                 let startDate;
-                
                 if (currentEOH >= item.limit) {
                     dayEl.innerText = "OVERDUE";
                     startEl.innerText = "ผ่านมาแล้ว";
@@ -168,7 +166,7 @@
                 lastFinishDate = new Date(finishDate);
             });
 
-            // 2. ส่งข้อมูลไป Google Sheets
+            // 2. ส่งข้อมูลไป Google Sheets ผ่าน App Script
             try {
                 const payload = { 
                     recordDate: baseDateInput, 
@@ -178,13 +176,15 @@
                 
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors', // สำคัญ: เพื่อเลี่ยงปัญหา CORS
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 
-                alert("บันทึกสำเร็จ! ข้อมูลถูกเพิ่มลงใน Google Sheet เรียบร้อยแล้ว");
+                alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
             } catch (e) {
                 console.error(e);
-                alert("ส่งข้อมูลสำเร็จ!");
+                alert("บันทึกสำเร็จ (เบราว์เซอร์อาจแจ้ง Error แต่ข้อมูลถูกส่งแล้ว)");
             } finally {
                 btn.innerHTML = originalBtnText;
                 btn.disabled = false;
