@@ -82,7 +82,8 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzW0lHJDFsPd_0uc66x0np1txDZ5ZBeQk4AcowgKnHaVLZiTX7ykxotH6Zfqu4TEhgh/exec';
+        // ลิงก์ App Script ที่อัปเดตใหม่
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3ltamYoeCU0gDguDoJ3PafvLf7NfeKBvwmZbPvrEvZjFKol4XqkWGXZYaLR_M-OE-/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -107,28 +108,30 @@
                 { id: 'typeC', type: 'Type C', limit: 36000, duration: 37 }
             ];
 
-            let accumulatedDuration = 0;
+            let currentRunningDate = new Date(baseDateVal);
+            let tempRunningEOH = currentEOH;
 
-            // แก้ไข Logic การแสดงผลหน้าเว็บตามที่เพื่อนแนะนำ
+            // Logic คำนวณเพื่อแสดงผลหน้าเว็บ (Sync กับ Logic ใน App Script)
             schedule.forEach(item => {
-                const daysUntilStart = Math.ceil((item.limit - currentEOH) / avgRate);
+                let eohDiff = item.limit - tempRunningEOH;
+                let daysUntilNextEOH = Math.ceil(eohDiff / avgRate);
+                if (daysUntilNextEOH <= 0) daysUntilNextEOH = 1;
+
+                const start = new Date(currentRunningDate);
+                start.setDate(start.getDate() + daysUntilNextEOH);
                 
-                // วันเริ่มซ่อม (Start) = วันฐาน + จำนวนวันรันจนถึง Limit + ระยะเวลาซ่อมของรอบก่อนหน้าทั้งหมด
-                const totalDaysToStart = daysUntilStart + accumulatedDuration;
-                
-                const start = new Date(baseDateVal);
-                start.setDate(start.getDate() + totalDaysToStart);
-                
-                // วันเสร็จ (Finish) = วันเริ่มซ่อม + ระยะเวลาซ่อมของรอบตัวเอง
                 const finish = new Date(start);
-                finish.setDate(start.getDate() + item.duration);
+                finish.setDate(start.getDate() + (item.duration - 1)); // ลบ 1 เพื่อให้รวมวันเริ่ม
 
                 const dayEl = document.getElementById(`${item.id}_days`);
                 const startEl = document.getElementById(`${item.id}_start`);
                 const finishEl = document.getElementById(`${item.id}_finish`);
 
                 if (item.limit > currentEOH) {
-                    dayEl.innerText = `${totalDaysToStart.toLocaleString()} วัน`;
+                    const diffTime = Math.abs(start - new Date(baseDateVal));
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
                     startEl.innerText = "เริ่ม: " + start.toLocaleDateString('th-TH');
                     finishEl.innerText = "เสร็จ: " + finish.toLocaleDateString('th-TH');
                 } else {
@@ -137,13 +140,15 @@
                     finishEl.innerText = "-";
                 }
                 
-                // สะสมระยะเวลาซ่อมเพื่อใช้คำนวณรอบถัดไป
-                accumulatedDuration += item.duration;
+                // อัปเดตตัวแปรเพื่อใช้คำนวณ Type ถัดไปใน Loop
+                currentRunningDate = new Date(finish);
+                tempRunningEOH = 0; // หลังจาก Type แรก ถือว่า Reset EOH เป็น 0 เพื่อรันไปอีก 9000
             });
 
             const payload = { recordDate: baseDateVal, currentEOH: currentEOH, avgRate: avgRate };
 
             try {
+                // ส่งข้อมูลไปยัง Google Apps Script
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -151,10 +156,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                alert("บันทึกข้อมูลและแผนล่วงหน้าเรียบร้อยแล้ว!");
+                alert("บันทึกข้อมูลและส่งไปยัง Google Sheets เรียบร้อยแล้ว!");
             } catch (e) {
                 console.error(e);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับ App Script");
             }
 
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและพยากรณ์';
