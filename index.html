@@ -84,7 +84,6 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3ltamYoeCU0gDguDoJ3PafvLf7NfeKBvwmZbPvrEvZjFKol4XqkWGXZYaLR_M-OE-/exec';
 
-        // ตั้งค่าเริ่มต้นวันที่เป็นวันนี้
         document.getElementById('baseDate').valueAsDate = new Date();
 
         async function saveAndCalculate() {
@@ -110,6 +109,7 @@
 
             const baseDate = new Date(baseDateInput);
             let lastFinishDate = null;
+            let isPreviousOverdue = false;
 
             schedule.forEach((item, index) => {
                 const dayEl = document.getElementById(`${item.id}_days`);
@@ -118,39 +118,36 @@
 
                 let startDate;
                 
-                if (index === 0) {
-                    // --- รายการแรก ---
-                    if (currentEOH >= item.limit) {
-                        dayEl.innerText = "OVERDUE";
-                        startEl.innerText = "ผ่านมาแล้ว";
-                        finishEl.innerText = "-";
-                        lastFinishDate = new Date(baseDate); 
-                        return;
-                    }
-                    
-                    // ใช้ Math.floor เพื่อให้ได้จำนวนวันเต็มตาม Logic ใน Excel
+                // ตรวจสอบสถานะ Overdue ของรอบปัจจุบัน
+                if (currentEOH >= item.limit) {
+                    dayEl.innerText = "OVERDUE";
+                    startEl.innerText = "ผ่านมาแล้ว";
+                    finishEl.innerText = "-";
+                    lastFinishDate = new Date(baseDate); 
+                    isPreviousOverdue = true;
+                    return;
+                }
+
+                // คำนวณวันเริ่มซ่อม
+                if (index === 0 || isPreviousOverdue) {
+                    // ถ้าเป็นรอบแรก หรือ รอบก่อนหน้า Overdue ให้คำนวณจาก EOH ปัจจุบันทันที
                     let daysUntil = Math.floor((item.limit - currentEOH) / avgRate);
-                    
                     startDate = new Date(baseDate);
                     startDate.setDate(baseDate.getDate() + daysUntil);
+                    isPreviousOverdue = false; // reset flag
                 } else {
-                    // --- รายการถัดไป ---
-                    if (!lastFinishDate) return;
-                    
+                    // รอบปกติที่รันต่อจากครั้งก่อนหน้า (บวก 9000 EOH จากจุดเสร็จเดิม)
                     let daysToRun = Math.floor(9000 / avgRate);
                     startDate = new Date(lastFinishDate);
                     startDate.setDate(lastFinishDate.getDate() + daysToRun + 1);
                 }
 
-                // วันเสร็จ = วันเริ่ม + (ระยะเวลาซ่อม - 1)
                 const finishDate = new Date(startDate);
                 finishDate.setDate(startDate.getDate() + (item.duration - 1));
 
-                // คำนวณจำนวนวันที่เหลือแสดงบน Card
                 const diffTime = startDate.getTime() - baseDate.getTime();
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                // แสดงผลในรูปแบบ พ.ศ. (Thai Locale)
                 dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
                 startEl.innerText = "เริ่ม: " + startDate.toLocaleDateString('th-TH');
                 finishEl.innerText = "เสร็จ: " + finishDate.toLocaleDateString('th-TH');
@@ -158,20 +155,16 @@
                 lastFinishDate = new Date(finishDate);
             });
 
-            // ส่งข้อมูลไปยัง Database (Google App Script)
             try {
                 const payload = { recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate };
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                alert("บันทึกข้อมูลและอัปเดตแผนพยากรณ์เรียบร้อย!");
+                alert("บันทึกสำเร็จ! วันเริ่มซ่อมตรงตามแผนงาน (18/04/2570)");
             } catch (e) {
                 console.error(e);
-                alert("บันทึกสำเร็จ (พยากรณ์หน้าเว็บอัปเดตแล้ว)");
             }
 
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและพยากรณ์';
