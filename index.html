@@ -82,7 +82,6 @@
     </div>
 
     <script>
-        // ลิงก์ App Script ล่าสุด (รองรับ 3 Cycles)
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzW0lHJDFsPd_0uc66x0np1txDZ5ZBeQk4AcowgKnHaVLZiTX7ykxotH6Zfqu4TEhgh/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
@@ -98,7 +97,7 @@
             }
 
             const btn = document.getElementById('btnSave');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก 3 รอบวงจร...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
             btn.disabled = true;
 
             const schedule = [
@@ -108,15 +107,19 @@
                 { id: 'typeC', type: 'Type C', limit: 36000, duration: 37 }
             ];
 
-            let accumulatedShift = 0;
+            let accumulatedDuration = 0;
 
-            // 1. คำนวณพยากรณ์รอบปัจจุบันเพื่อโชว์บนหน้าเว็บ
+            // แก้ไข Logic การแสดงผลหน้าเว็บตามที่เพื่อนแนะนำ
             schedule.forEach(item => {
-                const daysUntilEOH = Math.ceil((item.limit - currentEOH) / avgRate);
-                const totalDays = daysUntilEOH + accumulatedShift;
+                const daysUntilStart = Math.ceil((item.limit - currentEOH) / avgRate);
+                
+                // วันเริ่มซ่อม (Start) = วันฐาน + จำนวนวันรันจนถึง Limit + ระยะเวลาซ่อมของรอบก่อนหน้าทั้งหมด
+                const totalDaysToStart = daysUntilStart + accumulatedDuration;
                 
                 const start = new Date(baseDateVal);
-                start.setDate(start.getDate() + totalDays);
+                start.setDate(start.getDate() + totalDaysToStart);
+                
+                // วันเสร็จ (Finish) = วันเริ่มซ่อม + ระยะเวลาซ่อมของรอบตัวเอง
                 const finish = new Date(start);
                 finish.setDate(start.getDate() + item.duration);
 
@@ -125,7 +128,7 @@
                 const finishEl = document.getElementById(`${item.id}_finish`);
 
                 if (item.limit > currentEOH) {
-                    dayEl.innerText = `${totalDays.toLocaleString()} วัน`;
+                    dayEl.innerText = `${totalDaysToStart.toLocaleString()} วัน`;
                     startEl.innerText = "เริ่ม: " + start.toLocaleDateString('th-TH');
                     finishEl.innerText = "เสร็จ: " + finish.toLocaleDateString('th-TH');
                 } else {
@@ -133,15 +136,12 @@
                     startEl.innerText = "ผ่านมาแล้ว";
                     finishEl.innerText = "-";
                 }
-                accumulatedShift += item.duration;
+                
+                // สะสมระยะเวลาซ่อมเพื่อใช้คำนวณรอบถัดไป
+                accumulatedDuration += item.duration;
             });
 
-            // 2. ส่งข้อมูลไปให้ Script จัดการบันทึก (พยากรณ์ล่วงหน้าอีก 2 รอบจะทำที่ Server)
-            const payload = {
-                recordDate: baseDateVal,
-                currentEOH: currentEOH,
-                avgRate: avgRate
-            };
+            const payload = { recordDate: baseDateVal, currentEOH: currentEOH, avgRate: avgRate };
 
             try {
                 await fetch(SCRIPT_URL, {
@@ -151,11 +151,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                
-                alert("บันทึกข้อมูลเรียบร้อย! ระบบได้สร้างแผนล่วงหน้าให้คุณอีก 2 รอบ (Total 12 Rows) ลงใน Google Sheets แล้วครับ");
+                alert("บันทึกข้อมูลและแผนล่วงหน้าเรียบร้อยแล้ว!");
             } catch (e) {
                 console.error(e);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ Script");
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
             }
 
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและพยากรณ์';
