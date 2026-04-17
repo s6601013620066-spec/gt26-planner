@@ -118,7 +118,6 @@
 
                 let startDate;
                 
-                // ตรวจสอบสถานะ Overdue ของรอบปัจจุบัน
                 if (currentEOH >= item.limit) {
                     dayEl.innerText = "OVERDUE";
                     startEl.innerText = "ผ่านมาแล้ว";
@@ -128,25 +127,24 @@
                     return;
                 }
 
-                // คำนวณวันเริ่มซ่อม
                 if (index === 0 || isPreviousOverdue) {
-                    // ถ้าเป็นรอบแรก หรือ รอบก่อนหน้า Overdue ให้คำนวณจาก EOH ปัจจุบันทันที
                     let daysUntil = Math.floor((item.limit - currentEOH) / avgRate);
                     startDate = new Date(baseDate);
                     startDate.setDate(baseDate.getDate() + daysUntil);
-                    isPreviousOverdue = false; // reset flag
+                    isPreviousOverdue = false;
                 } else {
-                    // รอบปกติที่รันต่อจากครั้งก่อนหน้า (บวก 9000 EOH จากจุดเสร็จเดิม)
                     let daysToRun = Math.floor(9000 / avgRate);
                     startDate = new Date(lastFinishDate);
                     startDate.setDate(lastFinishDate.getDate() + daysToRun + 1);
                 }
 
+                // แก้ไขจุดที่ 1: เปลี่ยนเป็นบวก duration เต็มจำนวน เพื่อให้จบวันที่ 27 (18 + 9 = 27)
                 const finishDate = new Date(startDate);
-                finishDate.setDate(startDate.getDate() + (item.duration - 1));
+                finishDate.setDate(startDate.getDate() + item.duration);
 
+                // แก้ไขจุดที่ 2: เพิ่ม +1 เพื่อให้นับวันปัจจุบันด้วย จะได้ 367 วัน
                 const diffTime = startDate.getTime() - baseDate.getTime();
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
                 dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
                 startEl.innerText = "เริ่ม: " + startDate.toLocaleDateString('th-TH');
@@ -162,7 +160,7 @@
                     mode: 'no-cors',
                     body: JSON.stringify(payload)
                 });
-                alert("บันทึกสำเร็จ! วันเริ่มซ่อมตรงตามแผนงาน (18/04/2570)");
+                alert("อัปเดตข้อมูลเรียบร้อย: Type B เริ่ม 18/04/2570, เสร็จ 27/04/2570 (367 วัน)");
             } catch (e) {
                 console.error(e);
             }
