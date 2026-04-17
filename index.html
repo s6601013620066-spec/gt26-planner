@@ -82,7 +82,8 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3ltamYoeCU0gDguDoJ3PafvLf7NfeKBvwmZbPvrEvZjFKol4XqkWGXZYaLR_M-OE-/exec';
+        // อัปเดต URL เป็นลิงก์ใหม่ที่คุณให้มาเรียบร้อยแล้ว
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxLp3jMZ91bQe6XjyC7f6--vj6gskleB8jN-FpGStPimkFJCscnLyNc42u-_Wx9Velk/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -133,15 +134,17 @@
                     startDate.setDate(baseDate.getDate() + daysUntil);
                     isPreviousOverdue = false;
                 } else {
-                    // แก้ไข: เริ่มนับ EOH ใหม่ทันทีตั้งแต่วันที่ซ่อมเสร็จ (นำ +1 ออก)
+                    // ปรับ: เริ่มนับ EOH ทันทีจากวันที่ซ่อมเสร็จของรอบก่อนหน้า
                     let daysToRun = Math.floor(9000 / avgRate);
                     startDate = new Date(lastFinishDate);
                     startDate.setDate(lastFinishDate.getDate() + daysToRun);
                 }
 
+                // ปรับ: วันเสร็จสิ้นบวก Duration เต็ม เพื่อให้จบวันที่ 27 (กรณีเริ่ม 18 ซ่อม 9 วัน)
                 const finishDate = new Date(startDate);
                 finishDate.setDate(startDate.getDate() + item.duration);
 
+                // ปรับ: นับรวมวันปัจจุบัน (+1) เพื่อให้ได้ 367 วันตามเป้าหมาย
                 const diffTime = startDate.getTime() - baseDate.getTime();
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
@@ -159,9 +162,10 @@
                     mode: 'no-cors',
                     body: JSON.stringify(payload)
                 });
-                alert("บันทึกสำเร็จ! ปรับแผนการนับ EOH ใหม่ตั้งแต่วันเสร็จสิ้นงานซ่อม");
+                alert("บันทึกสำเร็จ! ข้อมูลถูกส่งไปยัง Google Sheet ทั้ง 3 เซ็ทเรียบร้อยแล้ว");
             } catch (e) {
                 console.error(e);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับ Google Sheets");
             }
 
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและพยากรณ์';
