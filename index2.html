@@ -15,7 +15,6 @@
         .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); outline: none; }
         input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
         
-        /* ปรับแต่งสีของ SweetAlert2 ให้เข้ากับธีมมืด */
         .swal2-popup {
             background: #1e293b !important;
             color: #e2e8f0 !important;
@@ -27,14 +26,22 @@
 <body class="p-4 md:p-10">
 
     <div class="max-w-4xl mx-auto">
-        <header class="mb-8 flex justify-between items-center">
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent uppercase">Maintenance Report</h1>
                 <p class="text-slate-400">รายงานผลการซ่อมบำรุงตามแผน</p>
             </div>
-            <button onclick="window.location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl transition-all border border-slate-700 flex items-center">
-                <i class="fas fa-chevron-left mr-2"></i> กลับหน้าหลัก
-            </button>
+            <div class="flex flex-wrap gap-2">
+                <a href="https://docs.google.com/spreadsheets/d/1fwa9ivARn1X-xdyaSzPAq5bGIZbKH0qbAy397nPSReo/edit?gid=0#gid=0" 
+                   target="_blank" 
+                   class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 py-2 px-4 rounded-xl transition-all border border-blue-500/30 flex items-center">
+                    <i class="fas fa-table mr-2"></i> ตรวจสอบข้อมูลรายงานที่บันทึก
+                </a>
+                
+                <button onclick="window.location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl transition-all border border-slate-700 flex items-center">
+                    <i class="fas fa-chevron-left mr-2"></i> กลับหน้าหลัก
+                </button>
+            </div>
         </header>
 
         <div class="glass-card p-8 shadow-2xl border-t-4 border-emerald-500">
@@ -128,14 +135,12 @@
             document.getElementById(id).addEventListener('change', calculateDuration);
         });
 
-        // 1. ฟังก์ชันใหม่สำหรับสร้างบล็อกยืนยันก่อนบันทึก
         async function confirmAndSubmit() {
             const duration = document.getElementById('durationDays').value;
             const maintType = document.getElementById('maintType').value;
             const maintSet = document.getElementById('maintSet').value;
             const startDate = document.getElementById('startDate').value;
 
-            // ตรวจสอบเบื้องต้น
             if (duration === "รูปแบบวันที่ไม่ถูกต้อง" || parseFloat(duration) < 0) {
                 Swal.fire({ icon: 'error', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาตรวจสอบวันและเวลาให้ถูกต้อง', confirmButtonColor: '#10b981' });
                 return;
@@ -145,7 +150,6 @@
                 return;
             }
 
-            // แสดง Pop-up ยืนยัน
             const result = await Swal.fire({
                 title: 'ยืนยันการบันทึกข้อมูล?',
                 text: `คุณกำลังบันทึกรายงาน Type ${maintType} ครั้งที่ ${maintSet}`,
@@ -158,11 +162,10 @@
             });
 
             if (result.isConfirmed) {
-                executeSubmit(); // ไปยังขั้นตอนการบันทึกจริง
+                executeSubmit();
             }
         }
 
-        // 2. ฟังก์ชันส่งข้อมูลจริง (ปรับปรุงจาก submitReport เดิม)
         async function executeSubmit() {
             const btn = document.getElementById('btnSubmit');
             const data = {
@@ -186,7 +189,6 @@
                     body: JSON.stringify(data)
                 });
 
-                // 3. แสดงรูปติ๊กถูกสำเร็จและเด้งกลับหน้าหลัก
                 await Swal.fire({
                     icon: 'success',
                     title: 'บันทึกเรียบร้อย!',
@@ -196,7 +198,7 @@
                     confirmButtonColor: '#10b981'
                 });
 
-                window.location.href = 'index.html'; // เด้งกลับหน้าแรก
+                window.location.href = 'index.html';
 
             } catch (error) {
                 console.error(error);
