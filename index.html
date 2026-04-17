@@ -19,7 +19,7 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-10 text-center md:text-left">
             <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">GT26 MAINTENANCE DATABASE</h1>
-            <p class="text-slate-400">ระบบบันทึกและทำนายแผนการซ่อมบำรุงล่วงหน้า 3 รอบวงจร</p>
+            <p class="text-slate-400">ระบบบันทึกและพยากรณ์แผนซ่อมบำรุงแม่นยำรายวัน</p>
         </header>
 
         <div class="glass-card p-8 mb-8 shadow-2xl">
@@ -82,25 +82,26 @@
     </div>
 
     <script>
-        // ลิงก์ App Script ที่อัปเดตใหม่
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3ltamYoeCU0gDguDoJ3PafvLf7NfeKBvwmZbPvrEvZjFKol4XqkWGXZYaLR_M-OE-/exec';
 
+        // ตั้งค่าเริ่มต้นวันที่เป็นวันนี้
         document.getElementById('baseDate').valueAsDate = new Date();
 
         async function saveAndCalculate() {
-            const baseDateVal = document.getElementById('baseDate').value;
+            const baseDateInput = document.getElementById('baseDate').value;
             const currentEOH = parseFloat(document.getElementById('currentEOH').value);
             const avgRate = parseFloat(document.getElementById('avgEOHPerDay').value);
 
-            if (!baseDateVal || isNaN(currentEOH) || isNaN(avgRate)) { 
-                alert("กรุณากรอกข้อมูลให้ครบถ้วน"); 
+            if (!baseDateInput || isNaN(currentEOH) || isNaN(avgRate) || avgRate <= 0) { 
+                alert("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง"); 
                 return; 
             }
 
             const btn = document.getElementById('btnSave');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังประมวลผล...';
             btn.disabled = true;
 
+            // ตั้งค่าพื้นฐาน (EOH Limit และ ระยะเวลาซ่อม)
             const schedule = [
                 { id: 'typeA1', type: 'Type A1', limit: 9000, duration: 8 },
                 { id: 'typeB', type: 'Type B', limit: 18000, duration: 9 },
@@ -108,47 +109,65 @@
                 { id: 'typeC', type: 'Type C', limit: 36000, duration: 37 }
             ];
 
-            let currentRunningDate = new Date(baseDateVal);
-            let tempRunningEOH = currentEOH;
+            const baseDate = new Date(baseDateInput);
+            let lastFinishDate = null;
 
-            // Logic คำนวณเพื่อแสดงผลหน้าเว็บ (Sync กับ Logic ใน App Script)
-            schedule.forEach(item => {
-                let eohDiff = item.limit - tempRunningEOH;
-                let daysUntilNextEOH = Math.ceil(eohDiff / avgRate);
-                if (daysUntilNextEOH <= 0) daysUntilNextEOH = 1;
-
-                const start = new Date(currentRunningDate);
-                start.setDate(start.getDate() + daysUntilNextEOH);
-                
-                const finish = new Date(start);
-                finish.setDate(start.getDate() + (item.duration - 1)); // ลบ 1 เพื่อให้รวมวันเริ่ม
-
+            schedule.forEach((item, index) => {
                 const dayEl = document.getElementById(`${item.id}_days`);
                 const startEl = document.getElementById(`${item.id}_start`);
                 const finishEl = document.getElementById(`${item.id}_finish`);
 
-                if (item.limit > currentEOH) {
-                    const diffTime = Math.abs(start - new Date(baseDateVal));
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
-                    dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
-                    startEl.innerText = "เริ่ม: " + start.toLocaleDateString('th-TH');
-                    finishEl.innerText = "เสร็จ: " + finish.toLocaleDateString('th-TH');
-                } else {
-                    dayEl.innerText = "OVERDUE";
-                    startEl.innerText = "ผ่านมาแล้ว";
-                    finishEl.innerText = "-";
-                }
+                let startDate;
                 
-                // อัปเดตตัวแปรเพื่อใช้คำนวณ Type ถัดไปใน Loop
-                currentRunningDate = new Date(finish);
-                tempRunningEOH = 0; // หลังจาก Type แรก ถือว่า Reset EOH เป็น 0 เพื่อรันไปอีก 9000
+                if (index === 0) {
+                    // --- ชิ้นแรก (Type A1) ---
+                    if (currentEOH >= item.limit) {
+                        dayEl.innerText = "OVERDUE";
+                        startEl.innerText = "ผ่านมาแล้ว";
+                        finishEl.innerText = "-";
+                        // กรณี Overdue ให้ถือว่าวันที่จะรันรอบถัดไป เริ่มนับจากวันบันทึก
+                        lastFinishDate = new Date(baseDate);
+                        return;
+                    }
+                    
+                    // คำนวณวันเริ่ม: วันบันทึก + (EOH ที่เหลือ / Rate)
+                    let daysUntil = Math.ceil((item.limit - currentEOH) / avgRate);
+                    startDate = new Date(baseDate);
+                    startDate.setDate(baseDate.getDate() + daysUntil);
+                } else {
+                    // --- ชิ้นถัดไป (B, A2, C) ---
+                    // ถ้าอันก่อนหน้าเป็น Overdue หรือคำนวณไม่ได้ ให้ข้าม
+                    if (!lastFinishDate) {
+                        dayEl.innerText = "--";
+                        return;
+                    }
+                    
+                    // คำนวณวันเริ่ม: วันเสร็จของอันก่อนหน้า + 1 วัน (เริ่มรัน) + (9000 EOH / Rate)
+                    let daysToRun = Math.ceil(9000 / avgRate);
+                    startDate = new Date(lastFinishDate);
+                    startDate.setDate(lastFinishDate.getDate() + daysToRun + 1);
+                }
+
+                // วันเสร็จ: วันเริ่ม + (ระยะเวลาซ่อม - 1)
+                const finishDate = new Date(startDate);
+                finishDate.setDate(startDate.getDate() + (item.duration - 1));
+
+                // จำนวนวันนับจาก "วันบันทึก" ถึง "วันเริ่มซ่อมวันแรก"
+                const diffTime = startDate.getTime() - baseDate.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // แสดงผลบนหน้าเว็บ
+                dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
+                startEl.innerText = "เริ่ม: " + startDate.toLocaleDateString('th-TH');
+                finishEl.innerText = "เสร็จ: " + finishDate.toLocaleDateString('th-TH');
+
+                // เก็บวันเสร็จไว้ใช้อ้างอิงรอบถัดไป
+                lastFinishDate = new Date(finishDate);
             });
 
-            const payload = { recordDate: baseDateVal, currentEOH: currentEOH, avgRate: avgRate };
-
+            // ส่งข้อมูลไปยัง Google Apps Script
+            const payload = { recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate };
             try {
-                // ส่งข้อมูลไปยัง Google Apps Script
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -156,10 +175,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                alert("บันทึกข้อมูลและส่งไปยัง Google Sheets เรียบร้อยแล้ว!");
+                alert("บันทึกข้อมูลและอัปเดตแผนพยากรณ์สำเร็จ!");
             } catch (e) {
                 console.error(e);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับ App Script");
+                alert("บันทึกข้อมูลลงฐานข้อมูลไม่สำเร็จ แต่การพยากรณ์หน้าเว็บแสดงผลปกติ");
             }
 
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและพยากรณ์';
