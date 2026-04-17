@@ -84,6 +84,7 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3ltamYoeCU0gDguDoJ3PafvLf7NfeKBvwmZbPvrEvZjFKol4XqkWGXZYaLR_M-OE-/exec';
 
+        // ตั้งค่าเริ่มต้นวันที่เป็นวันนี้
         document.getElementById('baseDate').valueAsDate = new Date();
 
         async function saveAndCalculate() {
@@ -101,10 +102,10 @@
             btn.disabled = true;
 
             const schedule = [
-                { id: 'typeA1', type: 'Type A1', limit: 9000, duration: 8 },
-                { id: 'typeB', type: 'Type B', limit: 18000, duration: 9 },
-                { id: 'typeA2', type: 'Type A2', limit: 27000, duration: 8 },
-                { id: 'typeC', type: 'Type C', limit: 36000, duration: 37 }
+                { id: 'typeA1', limit: 9000, duration: 8 },
+                { id: 'typeB', limit: 18000, duration: 9 },
+                { id: 'typeA2', limit: 27000, duration: 8 },
+                { id: 'typeC', limit: 36000, duration: 37 }
             ];
 
             const baseDate = new Date(baseDateInput);
@@ -116,51 +117,50 @@
                 const finishEl = document.getElementById(`${item.id}_finish`);
 
                 let startDate;
-                let daysToRun;
-
+                
                 if (index === 0) {
-                    // --- คำนวณตามสูตรที่คุณต้องการสำหรับ Type แรก ---
+                    // --- รายการแรก ---
                     if (currentEOH >= item.limit) {
                         dayEl.innerText = "OVERDUE";
                         startEl.innerText = "ผ่านมาแล้ว";
                         finishEl.innerText = "-";
-                        lastFinishDate = new Date(baseDate);
+                        lastFinishDate = new Date(baseDate); 
                         return;
                     }
                     
-                    // สูตร: (Limit 9000 - Current EOH) / Avg Rate
-                    daysToRun = Math.ceil((item.limit - currentEOH) / avgRate);
+                    // ใช้ Math.floor เพื่อให้ได้จำนวนวันเต็มตาม Logic ใน Excel
+                    let daysUntil = Math.floor((item.limit - currentEOH) / avgRate);
+                    
                     startDate = new Date(baseDate);
-                    startDate.setDate(baseDate.getDate() + daysToRun);
+                    startDate.setDate(baseDate.getDate() + daysUntil);
                 } else {
-                    // --- สำหรับ Type ถัดๆ ไป (B, A2, C) ---
+                    // --- รายการถัดไป ---
                     if (!lastFinishDate) return;
-                    // นับระยะการรันเครื่อง 9000 EOH ต่อจากการซ่อมครั้งล่าสุด
-                    daysToRun = Math.ceil(9000 / avgRate);
+                    
+                    let daysToRun = Math.floor(9000 / avgRate);
                     startDate = new Date(lastFinishDate);
                     startDate.setDate(lastFinishDate.getDate() + daysToRun + 1);
                 }
 
-                // วันเสร็จ: วันเริ่ม + (ระยะเวลาซ่อม - 1 วัน)
+                // วันเสร็จ = วันเริ่ม + (ระยะเวลาซ่อม - 1)
                 const finishDate = new Date(startDate);
                 finishDate.setDate(startDate.getDate() + (item.duration - 1));
 
-                // คำนวณจำนวนวันที่แสดงบน Card (นับจากวันบันทึกข้อมูล ไปถึง วันแรกที่จะเริ่มซ่อม)
+                // คำนวณจำนวนวันที่เหลือแสดงบน Card
                 const diffTime = startDate.getTime() - baseDate.getTime();
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                // แสดงผลลัพธ์
+                // แสดงผลในรูปแบบ พ.ศ. (Thai Locale)
                 dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
                 startEl.innerText = "เริ่ม: " + startDate.toLocaleDateString('th-TH');
                 finishEl.innerText = "เสร็จ: " + finishDate.toLocaleDateString('th-TH');
 
-                // เก็บวันที่ซ่อมเสร็จไว้ใช้อ้างอิงรอบถัดไป
                 lastFinishDate = new Date(finishDate);
             });
 
-            // ส่วนการส่งข้อมูลไป Google App Script
-            const payload = { recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate };
+            // ส่งข้อมูลไปยัง Database (Google App Script)
             try {
+                const payload = { recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate };
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -168,7 +168,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                alert("บันทึกข้อมูลและอัปเดตแผนพยากรณ์สำเร็จ!");
+                alert("บันทึกข้อมูลและอัปเดตแผนพยากรณ์เรียบร้อย!");
             } catch (e) {
                 console.error(e);
                 alert("บันทึกสำเร็จ (พยากรณ์หน้าเว็บอัปเดตแล้ว)");
