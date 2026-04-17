@@ -88,8 +88,8 @@
     </div>
 
     <script>
-        // ลิงก์ App Script ตัวล่าสุด (อัปเดตแล้ว)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRUqKUpnzabFZlo9jNE8DqVu5Ti57Q5oLBaEngGn30KSupZGrZqT8_8jDYObR0hI9J/exec';
+        // อัปเดตลิงก์ App Script เป็นตัวล่าสุดที่ให้มา
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEZ84qkH2I6gTZ4c8qhWj8oeS3n0PkgFuS8gbPJAECGuZmM-UxmReIUVmvrRWwgZFy/exec';
         
         // ลิงก์ Google Sheet
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
@@ -126,7 +126,7 @@
             let lastFinishDate = null;
             let isPreviousOverdue = false;
 
-            // 1. คำนวณแสดงผลบน UI
+            // 1. คำนวณแสดงผลบนหน้าเว็บ
             schedule.forEach((item, index) => {
                 const dayEl = document.getElementById(`${item.id}_days`);
                 const startEl = document.getElementById(`${item.id}_start`);
@@ -166,7 +166,7 @@
                 lastFinishDate = new Date(finishDate);
             });
 
-            // 2. ส่งข้อมูลไป Google Sheets ผ่าน App Script
+            // 2. ส่งข้อมูลไป Google Sheets
             try {
                 const payload = { 
                     recordDate: baseDateInput, 
@@ -176,7 +176,7 @@
                 
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // สำคัญ: เพื่อเลี่ยงปัญหา CORS
+                    mode: 'no-cors', 
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
@@ -184,7 +184,7 @@
                 alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
             } catch (e) {
                 console.error(e);
-                alert("บันทึกสำเร็จ (เบราว์เซอร์อาจแจ้ง Error แต่ข้อมูลถูกส่งแล้ว)");
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
             } finally {
                 btn.innerHTML = originalBtnText;
                 btn.disabled = false;
