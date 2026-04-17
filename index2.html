@@ -90,8 +90,8 @@
     </div>
 
     <script>
-        // ใส่ SCRIPT_URL ของ Google Apps Script ที่นี่
-        const REPORT_SCRIPT_URL = 'ใส่_URL_แอปสคริปต์_ใหม่ที่นี่';
+        // ใส่ SCRIPT_URL ของ Google Apps Script ที่ได้รับมาเรียบร้อยแล้ว
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw5KG6VlwCBk7ccIPmkUW-Y_yN4u0PmL6WXmM0eP4x91zpgLRuXGgwvuIlv2ydW2Ed/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
@@ -163,6 +163,8 @@
                     body: JSON.stringify(data)
                 });
                 alert("บันทึกรายงานเรียบร้อยแล้ว!");
+                // เคลียร์ค่าหลังจากบันทึกสำเร็จ (ยกเว้นวันที่บันทึก)
+                document.getElementById('comment').value = '';
             } catch (error) {
                 console.error(error);
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
