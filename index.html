@@ -19,7 +19,7 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-10 text-center md:text-left">
             <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">GT26 MAINTENANCE DATABASE</h1>
-            <p class="text-slate-400">ระบบบันทึกและทำนายแผนการซ่อมบำรุงลง Google Sheets</p>
+            <p class="text-slate-400">ระบบบันทึกและทำนายแผนการซ่อมบำรุงล่วงหน้า 3 รอบวงจร</p>
         </header>
 
         <div class="glass-card p-8 mb-8 shadow-2xl">
@@ -38,12 +38,13 @@
                 </div>
                 <div class="flex items-end">
                     <button onclick="saveAndCalculate()" id="btnSave" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-emerald-600/20">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและคำนวณ
+                        <i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและพยากรณ์
                     </button>
                 </div>
             </div>
         </div>
 
+        <h2 class="text-lg font-semibold mb-4 text-blue-400"><i class="fas fa-calendar-alt mr-2"></i>พยากรณ์รอบปัจจุบัน (Next Maintenance)</h2>
         <div id="results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div id="card_typeA1" class="glass-card p-5 border-l-4 border-emerald-500">
                 <h3 class="text-emerald-400 font-bold text-sm">TYPE A1 (9k)</h3>
@@ -81,8 +82,8 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ App Script ตัวล่าสุดสำหรับการบันทึกต่อท้าย (Append)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxeMUx9WF76BI4IyydFtwwi2tA1oIF2M7ABOeGt1ULvPL-FpmwKcwAaFUcyvqS2MMRQ/exec';
+        // ลิงก์ App Script ล่าสุด (รองรับ 3 Cycles)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzW0lHJDFsPd_0uc66x0np1txDZ5ZBeQk4AcowgKnHaVLZiTX7ykxotH6Zfqu4TEhgh/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -97,7 +98,7 @@
             }
 
             const btn = document.getElementById('btnSave');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่งข้อมูล...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก 3 รอบวงจร...';
             btn.disabled = true;
 
             const schedule = [
@@ -108,9 +109,8 @@
             ];
 
             let accumulatedShift = 0;
-            let nextToSave = null;
 
-            // แสดงผลพยากรณ์บนหน้าเว็บ
+            // 1. คำนวณพยากรณ์รอบปัจจุบันเพื่อโชว์บนหน้าเว็บ
             schedule.forEach(item => {
                 const daysUntilEOH = Math.ceil((item.limit - currentEOH) / avgRate);
                 const totalDays = daysUntilEOH + accumulatedShift;
@@ -128,15 +128,6 @@
                     dayEl.innerText = `${totalDays.toLocaleString()} วัน`;
                     startEl.innerText = "เริ่ม: " + start.toLocaleDateString('th-TH');
                     finishEl.innerText = "เสร็จ: " + finish.toLocaleDateString('th-TH');
-                    
-                    if (!nextToSave) {
-                        nextToSave = {
-                            type: item.type,
-                            days: totalDays,
-                            start: start.toLocaleDateString('th-TH'),
-                            finish: finish.toLocaleDateString('th-TH')
-                        };
-                    }
                 } else {
                     dayEl.innerText = "OVERDUE";
                     startEl.innerText = "ผ่านมาแล้ว";
@@ -145,7 +136,7 @@
                 accumulatedShift += item.duration;
             });
 
-            // ส่งข้อมูลไปบันทึก (Append) ใน Google Sheets
+            // 2. ส่งข้อมูลไปให้ Script จัดการบันทึก (พยากรณ์ล่วงหน้าอีก 2 รอบจะทำที่ Server)
             const payload = {
                 recordDate: baseDateVal,
                 currentEOH: currentEOH,
@@ -161,13 +152,13 @@
                     body: JSON.stringify(payload)
                 });
                 
-                alert("เพิ่มข้อมูลใหม่ต่อท้าย Timeline เรียบร้อยแล้ว!");
+                alert("บันทึกข้อมูลเรียบร้อย! ระบบได้สร้างแผนล่วงหน้าให้คุณอีก 2 รอบ (Total 12 Rows) ลงใน Google Sheets แล้วครับ");
             } catch (e) {
                 console.error(e);
-                alert("บันทึกไม่สำเร็จ โปรดตรวจสอบการ Deploy ใน Apps Script");
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ Script");
             }
 
-            btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและคำนวณ';
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i> บันทึกและพยากรณ์';
             btn.disabled = false;
         }
     </script>
