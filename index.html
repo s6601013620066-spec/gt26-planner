@@ -133,16 +133,15 @@
                     startDate.setDate(baseDate.getDate() + daysUntil);
                     isPreviousOverdue = false;
                 } else {
+                    // แก้ไข: เริ่มนับ EOH ใหม่ทันทีตั้งแต่วันที่ซ่อมเสร็จ (นำ +1 ออก)
                     let daysToRun = Math.floor(9000 / avgRate);
                     startDate = new Date(lastFinishDate);
-                    startDate.setDate(lastFinishDate.getDate() + daysToRun + 1);
+                    startDate.setDate(lastFinishDate.getDate() + daysToRun);
                 }
 
-                // แก้ไขจุดที่ 1: เปลี่ยนเป็นบวก duration เต็มจำนวน เพื่อให้จบวันที่ 27 (18 + 9 = 27)
                 const finishDate = new Date(startDate);
                 finishDate.setDate(startDate.getDate() + item.duration);
 
-                // แก้ไขจุดที่ 2: เพิ่ม +1 เพื่อให้นับวันปัจจุบันด้วย จะได้ 367 วัน
                 const diffTime = startDate.getTime() - baseDate.getTime();
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
@@ -160,7 +159,7 @@
                     mode: 'no-cors',
                     body: JSON.stringify(payload)
                 });
-                alert("อัปเดตข้อมูลเรียบร้อย: Type B เริ่ม 18/04/2570, เสร็จ 27/04/2570 (367 วัน)");
+                alert("บันทึกสำเร็จ! ปรับแผนการนับ EOH ใหม่ตั้งแต่วันเสร็จสิ้นงานซ่อม");
             } catch (e) {
                 console.error(e);
             }
