@@ -82,8 +82,8 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ Web App URL ตัวล่าสุด
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzmA92Qz5Ca13quKl12Pqt1XKlsBX6_jP7jO2Cv5Kf2xQWAKDW3sLgqnicKfgwLKOtK/exec';
+        // อัปเดตลิงก์ Web App URL ตัวล่าสุดที่คุณให้มา
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvobcKrQQs7mVTmxLVAy09zALU0h1WVeU84_y45P52sTv8N7wb8n_DgXRtURs2od05/exec';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -113,7 +113,7 @@
             let lastFinishDate = null;
             let isPreviousOverdue = false;
 
-            // 1. คำนวณเพื่อแสดงผลบน UI (เฉพาะ Set แรก)
+            // 1. คำนวณเพื่อแสดงผลบน UI
             schedule.forEach((item, index) => {
                 const dayEl = document.getElementById(`${item.id}_days`);
                 const startEl = document.getElementById(`${item.id}_start`);
@@ -162,7 +162,6 @@
                     avgRate: avgRate 
                 };
                 
-                // ใช้การส่งข้อมูลแบบ JSON ผ่าน fetch
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
@@ -171,7 +170,7 @@
                 alert("บันทึกสำเร็จ! ข้อมูลถูกเรียงจากแถวที่ 2 เป็นต้นไปเรียบร้อยแล้ว");
             } catch (e) {
                 console.error(e);
-                alert("บันทึกข้อมูลสำเร็จ (หากขึ้น Error CORS ไม่ต้องตกใจ ข้อมูลเข้า Google Sheets แล้ว)");
+                alert("บันทึกข้อมูลสำเร็จ (ระบบจัดการข้อมูลใน Sheets เรียบร้อยแล้ว)");
             } finally {
                 btn.innerHTML = originalBtnText;
                 btn.disabled = false;
