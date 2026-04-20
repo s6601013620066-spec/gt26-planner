@@ -106,8 +106,8 @@
     </div>
 
     <script>
-        // ใช้ลิงก์ App Script ที่คุณให้มาล่าสุด
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpNuq00PQ9dvn3MScezdBPbbnuWJqnfhdAeTEOXXC6Rd2hag_3Oe0eAR05Tb1BNEFx/exec';
+        // ลิงก์ App Script ล่าสุดที่คุณให้มา
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqe5sHUEv6oMb2D5sdJUFWb-Hb8bENOtilvzaPw5gffmOO8fU8q6fgaxeqfquejkdd/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
@@ -116,11 +116,11 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
-                // แสดงผลเลขครั้งถัดไปโดยอิงจากชื่อ Key ใน Sheet Counter
-                if(data["Type A1"] !== undefined) document.getElementById('set_A1').innerText = `Next Set: ${data["Type A1"] + 1}`;
-                if(data["Type B"] !== undefined) document.getElementById('set_B').innerText = `Next Set: ${data["Type B"] + 1}`;
-                if(data["Type A2"] !== undefined) document.getElementById('set_A2').innerText = `Next Set: ${data["Type A2"] + 1}`;
-                if(data["Type C"] !== undefined) document.getElementById('set_C').innerText = `Next Set: ${data["Type C"] + 1}`;
+                // แสดง Next Set โดยอ้างอิงจาก Logic: จำนวนที่ทำไปแล้ว + 1
+                if(data["A1"] !== undefined) document.getElementById('set_A1').innerText = `Next Set: ${data["A1"] + 1}`;
+                if(data["B"] !== undefined) document.getElementById('set_B').innerText = `Next Set: ${data["B"] + 1}`;
+                if(data["A2"] !== undefined) document.getElementById('set_A2').innerText = `Next Set: ${data["A2"] + 1}`;
+                if(data["C"] !== undefined) document.getElementById('set_C').innerText = `Next Set: ${data["C"] + 1}`;
             } catch (e) { console.log("Counter loading failed", e); }
         }
 
@@ -161,6 +161,7 @@
                 const finishEl = document.getElementById(`${item.id}_finish`);
 
                 let startDate;
+                // ตรรกะแสดง Overdue สำหรับเซตแรกที่ EOH เกินลิมิต
                 if (currentEOH >= item.limit) {
                     dayEl.innerText = "OVERDUE";
                     startEl.innerText = "ผ่านมาแล้ว";
@@ -171,7 +172,7 @@
                 }
 
                 if (index === 0 || isPreviousOverdue) {
-                    let daysUntil = Math.floor((item.limit - currentEOH) / avgRate);
+                    let daysUntil = Math.floor((item.limit - (currentEOH % 36000)) / avgRate);
                     startDate = new Date(baseDate);
                     startDate.setDate(baseDate.getDate() + daysUntil);
                     isPreviousOverdue = false;
