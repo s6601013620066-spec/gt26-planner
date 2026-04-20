@@ -19,7 +19,7 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6">
             <div class="text-center md:text-left">
-                <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">GT26 MAINTENANCE DATABASE</h1>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent uppercase">GT26 MAINTENANCE DATABASE</h1>
                 <p class="text-slate-400">ระบบบันทึกและพยากรณ์แผนซ่อมบำรุงแม่นยำรายวัน</p>
             </div>
             
@@ -106,8 +106,7 @@
     </div>
 
     <script>
-        // อัปเดต URL เป็นลิงก์ใหม่ของคุณ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVTAGJsuXGqiLevddEL8d1H87MuXdbI2SwjzuIBo9j9x5nvX84NMe28orLUFwmJ4TC/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdSktRoGxaevaze4OodR82djk0GckFw89bQ0BYaUxAzs_iL2DrbbUPAKya2R1neYPB/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
@@ -116,10 +115,11 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
-                if(data.A1 !== undefined) document.getElementById('set_A1').innerText = `Next Set: ${data.A1 + 1}`;
-                if(data.B !== undefined) document.getElementById('set_B').innerText = `Next Set: ${data.B + 1}`;
-                if(data.A2 !== undefined) document.getElementById('set_A2').innerText = `Next Set: ${data.A2 + 1}`;
-                if(data.C !== undefined) document.getElementById('set_C').innerText = `Next Set: ${data.C + 1}`;
+                // แสดงค่าครั้งถัดไปในหน้าเว็บ (ค่าใน Sheet + 1)
+                if(data.A1 !== undefined) document.getElementById('set_A1').innerText = `Next Set: ${Number(data.A1) + 1}`;
+                if(data.B !== undefined) document.getElementById('set_B').innerText = `Next Set: ${Number(data.B) + 1}`;
+                if(data.A2 !== undefined) document.getElementById('set_A2').innerText = `Next Set: ${Number(data.A2) + 1}`;
+                if(data.C !== undefined) document.getElementById('set_C').innerText = `Next Set: ${Number(data.C) + 1}`;
             } catch (e) { console.log("Counter loading failed", e); }
         }
 
@@ -182,7 +182,6 @@
 
                 const finishDate = new Date(startDate);
                 finishDate.setDate(startDate.getDate() + item.duration);
-
                 const diffTime = startDate.getTime() - baseDate.getTime();
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -196,10 +195,9 @@
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate })
                 });
-                alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+                alert("พยากรณ์สำเร็จ! ข้อมูลถูกบันทึกลง Google Sheets แล้ว");
             } catch (e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
             finally { btn.innerHTML = originalBtnText; btn.disabled = false; }
         }
