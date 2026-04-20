@@ -106,8 +106,8 @@
     </div>
 
     <script>
-        // อัปเดต SCRIPT_URL เป็น ID ล่าสุดที่คุณให้มา
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9GYMcwM5fivjMTGevNHeRW2xeOnKsTJWmh2l-E924LYpCikBiVYvOpJxD-MCzt7JP/exec';
+        // อัปเดตลิงก์ App Script ใหม่ที่คุณให้มา
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXvtrwUMhdvKf4nyjqP855j0ulupi_OC1JGm-uCq8QXchZFjDeg4FuZFGjPZg4t4-t/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
@@ -143,6 +143,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังประมวลผล...';
             btn.disabled = true;
 
+            // ส่วนแสดงผลบนหน้าเว็บ (คำนวณแบบเดิมเพื่อโชว์การ์ด)
             const schedule = [
                 { id: 'typeA1', limit: 9000, duration: 8 },
                 { id: 'typeB', limit: 18000, duration: 9 },
@@ -191,13 +192,15 @@
                 lastFinishDate = new Date(finishDate);
             });
 
+            // ส่งข้อมูลไปยัง Google Sheets
             try {
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
                     body: JSON.stringify({ recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate })
                 });
-                alert("พยากรณ์สำเร็จ! ข้อมูลถูกบันทึกลง Google Sheets แล้ว");
+                alert("พยากรณ์สำเร็จ! ข้อมูลถูกบันทึกต่อท้ายใน Google Sheets แล้ว");
+                fetchCounterInfo(); // อัปเดตเลข Set ใหม่
             } catch (e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
             finally { btn.innerHTML = originalBtnText; btn.disabled = false; }
         }
