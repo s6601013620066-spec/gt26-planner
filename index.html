@@ -106,21 +106,21 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA0LtW1BfkwWWdv-Ls9aRUj1mksWclkfzo4AFi-tc8zj55hjPouDoJPWyMcFS-za-l/exec';
+        // อัปเดต URL เป็นลิงก์ใหม่ของคุณ
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVTAGJsuXGqiLevddEL8d1H87MuXdbI2SwjzuIBo9j9x5nvX84NMe28orLUFwmJ4TC/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
-        // ฟังก์ชันดึงเลข Set ล่าสุดมาแสดงผล
         async function fetchCounterInfo() {
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
-                document.getElementById('set_A1').innerText = `Next Set: ${data.A1 + 1}`;
-                document.getElementById('set_B').innerText = `Next Set: ${data.B + 1}`;
-                document.getElementById('set_A2').innerText = `Next Set: ${data.A2 + 1}`;
-                document.getElementById('set_C').innerText = `Next Set: ${data.C + 1}`;
-            } catch (e) { console.log("Counter loading failed"); }
+                if(data.A1 !== undefined) document.getElementById('set_A1').innerText = `Next Set: ${data.A1 + 1}`;
+                if(data.B !== undefined) document.getElementById('set_B').innerText = `Next Set: ${data.B + 1}`;
+                if(data.A2 !== undefined) document.getElementById('set_A2').innerText = `Next Set: ${data.A2 + 1}`;
+                if(data.C !== undefined) document.getElementById('set_C').innerText = `Next Set: ${data.C + 1}`;
+            } catch (e) { console.log("Counter loading failed", e); }
         }
 
         window.onload = fetchCounterInfo;
