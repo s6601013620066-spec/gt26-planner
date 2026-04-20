@@ -90,7 +90,8 @@
     </div>
 
     <script>
-        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdSktRoGxaevaze4OodR82djk0GckFw89bQ0BYaUxAzs_iL2DrbbUPAKya2R1neYPB/exec';
+        // อัปเดต SCRIPT_URL เป็น ID ล่าสุดที่คุณให้มา
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9GYMcwM5fivjMTGevNHeRW2xeOnKsTJWmh2l-E924LYpCikBiVYvOpJxD-MCzt7JP/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
@@ -100,7 +101,6 @@
             try {
                 const res = await fetch(REPORT_SCRIPT_URL);
                 const counts = await res.json();
-                // ถ้าซ่อมเสร็จแล้ว ครั้งล่าสุดคือค่าในชีต + 1
                 setInput.value = (Number(counts[type]) || 0) + 1;
             } catch (e) { console.log("Fetch Set Error", e); }
         }
