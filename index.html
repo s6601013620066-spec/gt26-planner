@@ -106,7 +106,8 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdSktRoGxaevaze4OodR82djk0GckFw89bQ0BYaUxAzs_iL2DrbbUPAKya2R1neYPB/exec';
+        // อัปเดต SCRIPT_URL เป็น ID ล่าสุดที่คุณให้มา
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9GYMcwM5fivjMTGevNHeRW2xeOnKsTJWmh2l-E924LYpCikBiVYvOpJxD-MCzt7JP/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
@@ -115,7 +116,6 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
-                // แสดงค่าครั้งถัดไปในหน้าเว็บ (ค่าใน Sheet + 1)
                 if(data.A1 !== undefined) document.getElementById('set_A1').innerText = `Next Set: ${Number(data.A1) + 1}`;
                 if(data.B !== undefined) document.getElementById('set_B').innerText = `Next Set: ${Number(data.B) + 1}`;
                 if(data.A2 !== undefined) document.getElementById('set_A2').innerText = `Next Set: ${Number(data.A2) + 1}`;
