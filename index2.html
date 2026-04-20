@@ -96,8 +96,8 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ล่าสุดที่คุณให้มา
-        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpNuq00PQ9dvn3MScezdBPbbnuWJqnfhdAeTEOXXC6Rd2hag_3Oe0eAR05Tb1BNEFx/exec';
+        // ลิงก์ App Script ล่าสุดที่คุณให้มา
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqe5sHUEv6oMb2D5sdJUFWb-Hb8bENOtilvzaPw5gffmOO8fU8q6fgaxeqfquejkdd/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
@@ -105,14 +105,14 @@
             const typeFull = document.getElementById('maintType').value;
             const setInput = document.getElementById('maintSet');
             
-            // ล้างคำว่า "Type " ออกเพื่อให้เหลือแค่ A1, B, A2, C ตรงกับใน Sheet Counter
+            // ล้างคำว่า "Type " เพื่อให้ Key ตรงกับหน้า Counter ใน Sheet (A1, B, A2, C)
             const typeKey = typeFull.replace("Type ", "").trim();
             
             setInput.placeholder = "กำลังโหลด...";
             try {
                 const res = await fetch(REPORT_SCRIPT_URL);
                 const counts = await res.json();
-                // ดึงค่าปัจจุบันมา +1 เพื่อระบุว่ากำลังซ่อมครั้งที่เท่าไหร่
+                // แสดงผล "ครั้งปัจจุบัน" โดยนำค่าที่นับได้จริง + 1
                 setInput.value = (counts[typeKey] || 0) + 1;
             } catch (e) { 
                 console.log("Fetch Set Error", e);
