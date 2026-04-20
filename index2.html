@@ -96,11 +96,11 @@
     </div>
 
     <script>
-        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA0LtW1BfkwWWdv-Ls9aRUj1mksWclkfzo4AFi-tc8zj55hjPouDoJPWyMcFS-za-l/exec';
+        // อัปเดต URL เป็นลิงก์ใหม่ของคุณ
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVTAGJsuXGqiLevddEL8d1H87MuXdbI2SwjzuIBo9j9x5nvX84NMe28orLUFwmJ4TC/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
-        // ฟังก์ชันดึงเลข Set อัตโนมัติจาก Counter
         async function autoFetchSetNumber() {
             const type = document.getElementById('maintType').value;
             const setInput = document.getElementById('maintSet');
@@ -108,9 +108,11 @@
             try {
                 const res = await fetch(REPORT_SCRIPT_URL);
                 const counts = await res.json();
-                // นำค่าปัจจุบันจาก Sheet + 1 เพื่อเป็นครั้งต่อไป
                 setInput.value = (counts[type] || 0) + 1;
-            } catch (e) { setInput.placeholder = "ใส่เลขครั้งที่"; }
+            } catch (e) { 
+                console.log("Fetch Set Error", e);
+                setInput.placeholder = "ใส่เลขครั้งที่"; 
+            }
         }
 
         window.onload = autoFetchSetNumber;
