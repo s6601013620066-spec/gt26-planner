@@ -46,10 +46,10 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">Type (ประเภทการซ่อม)</label>
                     <select id="maintType" onchange="autoFetchSetNumber()" class="input-field w-full p-3 rounded-xl appearance-none">
-                        <option value="A1">Type A1 (9k)</option>
-                        <option value="B">Type B (18k)</option>
-                        <option value="A2">Type A2 (27k)</option>
-                        <option value="C">Type C (36k)</option>
+                        <option value="Type A1">Type A1 (9k)</option>
+                        <option value="Type B">Type B (18k)</option>
+                        <option value="Type A2">Type A2 (27k)</option>
+                        <option value="Type C">Type C (36k)</option>
                     </select>
                 </div>
                 <div>
@@ -96,19 +96,24 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ App Script ตามที่คุณแจ้ง
-        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsvKjdiNqsVXMDl2zmGhyseevfCb4JIMwGxW9bQtFDduR1VVNqFG0kDVpaLPfhl2s/exec';
+        // อัปเดตลิงก์ App Script เป็นตัวล่าสุด
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZzStc2YMiSFKlQj9pTUXlprUcbPfC1jCB6u5Jm_rHxRv8vsKg3Z88GJo3Ns36Wuub/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
+        // ฟังก์ชันดึงเลข Set ถัดไปมาเติมให้อัตโนมัติ
         async function autoFetchSetNumber() {
             const type = document.getElementById('maintType').value;
             const setInput = document.getElementById('maintSet');
+            
+            // ปรับ Key ให้ตรงกับที่ App Script ส่งมา (A1, B, A2, C)
+            const typeKey = type.replace('Type ', ''); 
+            
             setInput.placeholder = "กำลังโหลด...";
             try {
                 const res = await fetch(REPORT_SCRIPT_URL);
                 const counts = await res.json();
-                setInput.value = (counts[type] || 0) + 1;
+                setInput.value = (counts[typeKey] || 0) + 1;
             } catch (e) { 
                 console.log("Fetch Set Error", e);
                 setInput.placeholder = "ใส่เลขครั้งที่"; 
@@ -142,7 +147,7 @@
         async function confirmAndSubmit() {
             const result = await Swal.fire({
                 title: 'ยืนยันการบันทึก?',
-                text: `บันทึกข้อมูล Type ${document.getElementById('maintType').value} ครั้งที่ ${document.getElementById('maintSet').value}`,
+                text: `บันทึกข้อมูล ${document.getElementById('maintType').value} ครั้งที่ ${document.getElementById('maintSet').value}`,
                 icon: 'question', 
                 showCancelButton: true, 
                 confirmButtonColor: '#10b981',
