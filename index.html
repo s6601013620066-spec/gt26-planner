@@ -106,8 +106,8 @@
     </div>
 
     <script>
-        // อัปเดตเป็นลิงก์ Web App ล่าสุดของคุณ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwaGYucoUyuDdKa8fmpIARn8yU6pbUREv_xbXn29S3dVD4tqcyinBCIjNxYisvbOTgM/exec';
+        // อัปเดตลิงก์ Web App ล่าสุดของคุณ
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXfQB0BSXYyoEiMU_ClVY0kTefSsQS7dBBjuaT9alV5aBDUFOZ-szLuu2qAjqomt1s/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
@@ -143,6 +143,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังประมวลผล...';
             btn.disabled = true;
 
+            // Logic คำนวณฝั่ง Client เพื่อแสดงผลทันที
             const schedule = [
                 { id: 'typeA1', limit: 9000, duration: 8 },
                 { id: 'typeB', limit: 18000, duration: 9 },
@@ -193,15 +194,20 @@
             });
 
             try {
+                // ส่งข้อมูลไป Script เพื่อบันทึกลง Sheet
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate })
                 });
-                alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
-            } catch (e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
-            finally { btn.innerHTML = originalBtnText; btn.disabled = false; }
+                alert("บันทึกข้อมูลและตีกรอบตารางเรียบร้อยแล้ว!");
+            } catch (e) { 
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); 
+            } finally { 
+                btn.innerHTML = originalBtnText; 
+                btn.disabled = false; 
+            }
         }
     </script>
 </body>
