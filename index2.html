@@ -26,7 +26,7 @@
                 <p class="text-slate-400">รายงานผลการซ่อมบำรุงตามแผน</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <a href="https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0" target="_blank" class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 py-2 px-4 rounded-xl transition-all border border-blue-500/30 flex items-center">
+                <a href="https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit#gid=0" target="_blank" class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 py-2 px-4 rounded-xl transition-all border border-blue-500/30 flex items-center">
                     <i class="fas fa-table mr-2"></i> ตรวจสอบข้อมูลใน Sheets
                 </a>
                 <button onclick="window.location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl transition-all border border-slate-700 flex items-center">
@@ -96,8 +96,8 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ Web App ล่าสุดของคุณ
-        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbXXfQB0BSXYyoEiMU_ClVY0kTefSsQS7dBBjuaT9alV5aBDUFOZ-szLuu2qAjqomt1s/exec';
+        // ลิงก์ App Script ล่าสุดที่คุณให้มา
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0yt-Lj_u9re2yTVKbBzneb531bJXDzOPHMdvoIhWt_BJvp52P4PnW2VthSQhXHZI5/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
@@ -171,7 +171,7 @@
                     mode: 'no-cors', 
                     body: JSON.stringify(data) 
                 });
-                Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกและตีกรอบข้อมูลแล้ว', timer: 2000 }).then(() => {
+                Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกประวัติและอัปเดต Counter แล้ว', timer: 2000 }).then(() => {
                     window.location.href = 'index.html';
                 });
             } catch (e) { 
