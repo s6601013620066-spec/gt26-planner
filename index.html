@@ -106,16 +106,18 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ App Script ตามที่คุณแจ้ง
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsvKjdiNqsVXMDl2zmGhyseevfCb4JIMwGxW9bQtFDduR1VVNqFG0kDVpaLPfhl2s/exec';
+        // อัปเดตลิงก์ App Script เป็นตัวล่าสุด
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZzStc2YMiSFKlQj9pTUXlprUcbPfC1jCB6u5Jm_rHxRv8vsKg3Z88GJo3Ns36Wuub/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
+        // ฟังก์ชันดึงเลข Set ล่าสุดจาก Counter
         async function fetchCounterInfo() {
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
+                // แสดงเลข Set ถัดไป (Next Set = Current Counter + 1)
                 if(data.A1 !== undefined) document.getElementById('set_A1').innerText = `Next Set: ${data.A1 + 1}`;
                 if(data.B !== undefined) document.getElementById('set_B').innerText = `Next Set: ${data.B + 1}`;
                 if(data.A2 !== undefined) document.getElementById('set_A2').innerText = `Next Set: ${data.A2 + 1}`;
@@ -202,6 +204,7 @@
                     })
                 });
                 alert("บันทึกข้อมูลพยากรณ์ลง Google Sheets เรียบร้อยแล้ว!");
+                fetchCounterInfo(); // อัปเดตเลข Set อีกครั้งหลังบันทึก
             } catch (e) { 
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อ Google Sheets"); 
             } finally { 
