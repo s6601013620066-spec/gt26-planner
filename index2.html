@@ -26,6 +26,9 @@
                 <p class="text-slate-400">รายงานผลการซ่อมบำรุงตามแผน</p>
             </div>
             <div class="flex flex-wrap gap-2">
+                <a href="https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0" target="_blank" class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 py-2 px-4 rounded-xl transition-all border border-blue-500/30 flex items-center">
+                    <i class="fas fa-table mr-2"></i> ตรวจสอบข้อมูลใน Sheets
+                </a>
                 <button onclick="window.location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl transition-all border border-slate-700 flex items-center">
                     <i class="fas fa-chevron-left mr-2"></i> กลับหน้าหลัก
                 </button>
@@ -51,7 +54,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">ครั้งที่ (Set)</label>
-                    <input type="number" id="maintSet" class="input-field w-full p-3 rounded-xl text-center bg-emerald-500/5">
+                    <input type="number" id="maintSet" placeholder="กำลังโหลด..." class="input-field w-full p-3 rounded-xl text-center bg-emerald-500/5">
                 </div>
 
                 <div class="space-y-2">
@@ -72,7 +75,10 @@
 
                 <div class="md:col-span-2 bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
                     <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">เวลาที่ใช้ทั้งหมด (วัน)</label>
-                    <input type="text" id="durationDays" value="0" readonly class="input-field w-full md:w-1/3 p-3 rounded-xl text-2xl font-bold text-emerald-400 bg-transparent border-none">
+                    <div class="flex items-center gap-4">
+                        <input type="text" id="durationDays" value="0" readonly class="input-field w-full md:w-1/3 p-3 rounded-xl text-2xl font-bold text-emerald-400 bg-transparent border-none">
+                        <span class="text-slate-500 text-sm"><i class="fas fa-magic mr-1"></i> คำนวณให้อัตโนมัติ</span>
+                    </div>
                 </div>
 
                 <div class="md:col-span-2">
@@ -90,19 +96,23 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ App Script ใหม่ที่คุณให้มา
-        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXvtrwUMhdvKf4nyjqP855j0ulupi_OC1JGm-uCq8QXchZFjDeg4FuZFGjPZg4t4-t/exec';
+        // อัปเดต URL เป็นลิงก์ใหม่เรียบร้อยแล้ว
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx57wZuEd7Gw0sQjAZPrzdR43dkm_lxYDHiyqm1hbDzXfze-ZyGl5_hXH-C8S1bds7S/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
         async function autoFetchSetNumber() {
             const type = document.getElementById('maintType').value;
             const setInput = document.getElementById('maintSet');
+            setInput.placeholder = "กำลังโหลด...";
             try {
                 const res = await fetch(REPORT_SCRIPT_URL);
                 const counts = await res.json();
-                setInput.value = (Number(counts[type]) || 0) + 1;
-            } catch (e) { console.log("Fetch Set Error", e); }
+                setInput.value = (counts[type] || 0) + 1;
+            } catch (e) { 
+                console.log("Fetch Set Error", e);
+                setInput.placeholder = "ใส่เลขครั้งที่"; 
+            }
         }
 
         window.onload = autoFetchSetNumber;
@@ -116,10 +126,12 @@
                 const start = new Date(`${startD}T${startT}`);
                 const finish = new Date(`${finishD}T${finishT}`);
                 const diff = finish - start;
-                if (diff >= 0) {
-                    const days = diff / (1000 * 60 * 60 * 24);
-                    document.getElementById('durationDays').value = days.toFixed(2);
+                if (diff < 0) {
+                    document.getElementById('durationDays').value = "Error";
+                    return;
                 }
+                const days = diff / (1000 * 60 * 60 * 24);
+                document.getElementById('durationDays').value = days.toFixed(2);
             }
         }
 
@@ -154,7 +166,7 @@
                 Swal.fire({ icon: 'success', title: 'สำเร็จ!', timer: 2000 }).then(() => {
                     window.location.href = 'index.html';
                 });
-            } catch (e) { Swal.fire('Error'); btn.disabled = false; }
+            } catch (e) { Swal.fire('เกิดข้อผิดพลาด'); btn.disabled = false; }
         }
     </script>
 </body>
