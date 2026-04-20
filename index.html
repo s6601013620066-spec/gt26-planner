@@ -59,7 +59,10 @@
         <h2 class="text-lg font-semibold mb-4 text-blue-400"><i class="fas fa-calendar-alt mr-2"></i>พยากรณ์รอบปัจจุบัน (Next Maintenance)</h2>
         <div id="results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div id="card_typeA1" class="glass-card p-5 border-l-4 border-emerald-500">
-                <h3 class="text-emerald-400 font-bold text-sm">TYPE A1 (9k)</h3>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-emerald-400 font-bold text-sm uppercase">Type A1 (9k)</h3>
+                    <span id="set_A1" class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">Set: --</span>
+                </div>
                 <div id="typeA1_days" class="text-2xl font-bold text-white my-2">-- วัน</div>
                 <div class="space-y-1">
                     <div id="typeA1_start" class="text-[11px] text-slate-300">เริ่ม: -</div>
@@ -67,7 +70,10 @@
                 </div>
             </div>
             <div id="card_typeB" class="glass-card p-5 border-l-4 border-amber-500">
-                <h3 class="text-amber-400 font-bold text-sm">TYPE B (18k)</h3>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-amber-400 font-bold text-sm uppercase">Type B (18k)</h3>
+                    <span id="set_B" class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">Set: --</span>
+                </div>
                 <div id="typeB_days" class="text-2xl font-bold text-white my-2">-- วัน</div>
                 <div class="space-y-1">
                     <div id="typeB_start" class="text-[11px] text-slate-300">เริ่ม: -</div>
@@ -75,7 +81,10 @@
                 </div>
             </div>
             <div id="card_typeA2" class="glass-card p-5 border-l-4 border-emerald-500">
-                <h3 class="text-emerald-400 font-bold text-sm">TYPE A2 (27k)</h3>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-emerald-400 font-bold text-sm uppercase">Type A2 (27k)</h3>
+                    <span id="set_A2" class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">Set: --</span>
+                </div>
                 <div id="typeA2_days" class="text-2xl font-bold text-white my-2">-- วัน</div>
                 <div class="space-y-1">
                     <div id="typeA2_start" class="text-[11px] text-slate-300">เริ่ม: -</div>
@@ -83,7 +92,10 @@
                 </div>
             </div>
             <div id="card_typeC" class="glass-card p-5 border-l-4 border-red-500">
-                <h3 class="text-red-400 font-bold text-sm">TYPE C (36k)</h3>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-red-400 font-bold text-sm uppercase">Type C (36k)</h3>
+                    <span id="set_C" class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full border border-red-500/30">Set: --</span>
+                </div>
                 <div id="typeC_days" class="text-2xl font-bold text-white my-2">-- วัน</div>
                 <div class="space-y-1">
                     <div id="typeC_start" class="text-[11px] text-slate-300">เริ่ม: -</div>
@@ -94,19 +106,27 @@
     </div>
 
     <script>
-        // *** อัปเดต URL ใหม่ ***
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA0LtW1BfkwWWdv-Ls9aRUj1mksWclkfzo4AFi-tc8zj55hjPouDoJPWyMcFS-za-l/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
-        function goToIndex2() {
-            window.location.href = 'index2.html';
+        // ฟังก์ชันดึงเลข Set ล่าสุดมาแสดงผล
+        async function fetchCounterInfo() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                document.getElementById('set_A1').innerText = `Next Set: ${data.A1 + 1}`;
+                document.getElementById('set_B').innerText = `Next Set: ${data.B + 1}`;
+                document.getElementById('set_A2').innerText = `Next Set: ${data.A2 + 1}`;
+                document.getElementById('set_C').innerText = `Next Set: ${data.C + 1}`;
+            } catch (e) { console.log("Counter loading failed"); }
         }
 
-        function openGoogleSheet() {
-            window.open(GOOGLE_SHEET_URL, '_blank');
-        }
+        window.onload = fetchCounterInfo;
+
+        function goToIndex2() { window.location.href = 'index2.html'; }
+        function openGoogleSheet() { window.open(GOOGLE_SHEET_URL, '_blank'); }
 
         async function saveAndCalculate() {
             const baseDateInput = document.getElementById('baseDate').value;
@@ -114,7 +134,7 @@
             const avgRate = parseFloat(document.getElementById('avgEOHPerDay').value);
 
             if (!baseDateInput || isNaN(currentEOH) || isNaN(avgRate) || avgRate <= 0) { 
-                alert("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง"); 
+                alert("กรุณากรอกข้อมูลให้ครบถ้วน"); 
                 return; 
             }
 
@@ -124,10 +144,10 @@
             btn.disabled = true;
 
             const schedule = [
-                { id: 'typeA1', name: 'Type A1', limit: 9000, duration: 8 },
-                { id: 'typeB', name: 'Type B', limit: 18000, duration: 9 },
-                { id: 'typeA2', name: 'Type A2', limit: 27000, duration: 8 },
-                { id: 'typeC', name: 'Type C', limit: 36000, duration: 37 }
+                { id: 'typeA1', limit: 9000, duration: 8 },
+                { id: 'typeB', limit: 18000, duration: 9 },
+                { id: 'typeA2', limit: 27000, duration: 8 },
+                { id: 'typeC', limit: 36000, duration: 37 }
             ];
 
             const baseDate = new Date(baseDateInput);
@@ -169,32 +189,19 @@
                 dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
                 startEl.innerText = "เริ่ม: " + startDate.toLocaleDateString('th-TH');
                 finishEl.innerText = "เสร็จ: " + finishDate.toLocaleDateString('th-TH');
-
                 lastFinishDate = new Date(finishDate);
             });
 
             try {
-                const payload = { 
-                    recordDate: baseDateInput, 
-                    currentEOH: currentEOH, 
-                    avgRate: avgRate 
-                };
-                
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate })
                 });
-                
                 alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
-            } catch (e) {
-                console.error(e);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
-            } finally {
-                btn.innerHTML = originalBtnText;
-                btn.disabled = false;
-            }
+            } catch (e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
+            finally { btn.innerHTML = originalBtnText; btn.disabled = false; }
         }
     </script>
 </body>
