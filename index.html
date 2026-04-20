@@ -29,7 +29,7 @@
                 </button>
 
                 <button onclick="openGoogleSheet()" class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/50 font-semibold py-2.5 px-6 rounded-xl transition-all flex items-center shadow-lg">
-                    <i class="fas fa-table mr-2"></i> ตรวจสอบข้อมูลใน Google Sheets
+                    <i class="fas fa-table mr-2"></i> ตรวจสอบข้อมูลใน Sheets
                 </button>
             </div>
         </header>
@@ -106,9 +106,9 @@
     </div>
 
     <script>
-        // อัปเดตลิงก์ Web App ล่าสุดของคุณ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXfQB0BSXYyoEiMU_ClVY0kTefSsQS7dBBjuaT9alV5aBDUFOZ-szLuu2qAjqomt1s/exec';
-        const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0';
+        // ลิงก์ App Script ล่าสุดที่คุณให้มา
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0yt-Lj_u9re2yTVKbBzneb531bJXDzOPHMdvoIhWt_BJvp52P4PnW2VthSQhXHZI5/exec';
+        const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
@@ -140,10 +140,10 @@
 
             const btn = document.getElementById('btnSave');
             const originalBtnText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังประมวลผล...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึกและพยากรณ์...';
             btn.disabled = true;
 
-            // Logic คำนวณฝั่ง Client เพื่อแสดงผลทันที
+            // --- ส่วนคำนวณ Client Side เพื่อแสดงผลที่หน้าจอทันที ---
             const schedule = [
                 { id: 'typeA1', limit: 9000, duration: 8 },
                 { id: 'typeB', limit: 18000, duration: 9 },
@@ -183,9 +183,7 @@
 
                 const finishDate = new Date(startDate);
                 finishDate.setDate(startDate.getDate() + item.duration);
-
-                const diffTime = startDate.getTime() - baseDate.getTime();
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffDays = Math.ceil((startDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
 
                 dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
                 startEl.innerText = "เริ่ม: " + startDate.toLocaleDateString('th-TH');
@@ -193,17 +191,21 @@
                 lastFinishDate = new Date(finishDate);
             });
 
+            // --- ส่วนส่งข้อมูลไปยัง App Script (POST) ---
             try {
-                // ส่งข้อมูลไป Script เพื่อบันทึกลง Sheet
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ recordDate: baseDateInput, currentEOH: currentEOH, avgRate: avgRate })
+                    body: JSON.stringify({ 
+                        recordDate: baseDateInput, 
+                        currentEOH: currentEOH, 
+                        avgRate: avgRate 
+                    })
                 });
-                alert("บันทึกข้อมูลและตีกรอบตารางเรียบร้อยแล้ว!");
+                alert("บันทึกข้อมูลพยากรณ์ลง Google Sheets เรียบร้อยแล้ว!");
             } catch (e) { 
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); 
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ Google Sheets"); 
             } finally { 
                 btn.innerHTML = originalBtnText; 
                 btn.disabled = false; 
