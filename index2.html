@@ -96,8 +96,8 @@
     </div>
 
     <script>
-        // อัปเดตเป็นลิงก์ Web App ล่าสุดของคุณ
-        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwaGYucoUyuDdKa8fmpIARn8yU6pbUREv_xbXn29S3dVD4tqcyinBCIjNxYisvbOTgM/exec';
+        // อัปเดตลิงก์ Web App ล่าสุดของคุณ
+        const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbXXfQB0BSXYyoEiMU_ClVY0kTefSsQS7dBBjuaT9alV5aBDUFOZ-szLuu2qAjqomt1s/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
@@ -143,7 +143,11 @@
             const result = await Swal.fire({
                 title: 'ยืนยันการบันทึก?',
                 text: `บันทึกข้อมูล Type ${document.getElementById('maintType').value} ครั้งที่ ${document.getElementById('maintSet').value}`,
-                icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981'
+                icon: 'question', 
+                showCancelButton: true, 
+                confirmButtonColor: '#10b981',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonText: 'ตกลง'
             });
             if (result.isConfirmed) executeSubmit();
         }
@@ -160,13 +164,21 @@
                 comment: document.getElementById('comment').value
             };
             btn.disabled = true;
-            btn.innerHTML = 'กำลังบันทึก...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
             try {
-                await fetch(REPORT_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-                Swal.fire({ icon: 'success', title: 'สำเร็จ!', timer: 2000 }).then(() => {
+                await fetch(REPORT_SCRIPT_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify(data) 
+                });
+                Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกและตีกรอบข้อมูลแล้ว', timer: 2000 }).then(() => {
                     window.location.href = 'index.html';
                 });
-            } catch (e) { Swal.fire('เกิดข้อผิดพลาด'); btn.disabled = false; }
+            } catch (e) { 
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'); 
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน';
+            }
         }
     </script>
 </body>
