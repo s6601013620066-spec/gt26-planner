@@ -14,13 +14,7 @@
         .input-field { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.3s; }
         .input-field:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); outline: none; }
         input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-        
-        .swal2-popup {
-            background: #1e293b !important;
-            color: #e2e8f0 !important;
-            border-radius: 1.25rem !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
+        .swal2-popup { background: #1e293b !important; color: #e2e8f0 !important; border-radius: 1.25rem !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -32,12 +26,9 @@
                 <p class="text-slate-400">รายงานผลการซ่อมบำรุงตามแผน</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <a href="https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0" 
-                   target="_blank" 
-                   class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 py-2 px-4 rounded-xl transition-all border border-blue-500/30 flex items-center">
-                    <i class="fas fa-table mr-2"></i> ตรวจสอบข้อมูลรายงานที่บันทึก
+                <a href="https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit?gid=0#gid=0" target="_blank" class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 py-2 px-4 rounded-xl transition-all border border-blue-500/30 flex items-center">
+                    <i class="fas fa-table mr-2"></i> ตรวจสอบข้อมูลใน Sheets
                 </a>
-                
                 <button onclick="window.location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl transition-all border border-slate-700 flex items-center">
                     <i class="fas fa-chevron-left mr-2"></i> กลับหน้าหลัก
                 </button>
@@ -54,7 +45,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">Type (ประเภทการซ่อม)</label>
-                    <select id="maintType" class="input-field w-full p-3 rounded-xl appearance-none">
+                    <select id="maintType" onchange="autoFetchSetNumber()" class="input-field w-full p-3 rounded-xl appearance-none">
                         <option value="A1">Type A1 (9k)</option>
                         <option value="B">Type B (18k)</option>
                         <option value="A2">Type A2 (27k)</option>
@@ -63,7 +54,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">ครั้งที่ (Set)</label>
-                    <input type="number" id="maintSet" placeholder="เช่น 1" class="input-field w-full p-3 rounded-xl text-center">
+                    <input type="number" id="maintSet" placeholder="กำลังโหลด..." class="input-field w-full p-3 rounded-xl text-center bg-emerald-500/5">
                 </div>
 
                 <div class="space-y-2">
@@ -91,12 +82,12 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">Comment (รายละเอียดเพิ่มเติม)</label>
-                    <textarea id="comment" rows="4" placeholder="ระบุรายละเอียดการซ่อมบำรุง..." class="input-field w-full p-4 rounded-xl resize-none"></textarea>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-2 tracking-wider">Comment</label>
+                    <textarea id="comment" rows="4" placeholder="ระบุรายละเอียด..." class="input-field w-full p-4 rounded-xl resize-none"></textarea>
                 </div>
 
                 <div class="md:col-span-2 mt-4">
-                    <button onclick="confirmAndSubmit()" id="btnSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center text-lg">
+                    <button onclick="confirmAndSubmit()" id="btnSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex justify-center items-center text-lg">
                         <i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน
                     </button>
                 </div>
@@ -105,30 +96,40 @@
     </div>
 
     <script>
-        // *** อัปเดตเป็น URL เดียวกันกับหน้าแรก ***
         const REPORT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA0LtW1BfkwWWdv-Ls9aRUj1mksWclkfzo4AFi-tc8zj55hjPouDoJPWyMcFS-za-l/exec';
 
         document.getElementById('reportDate').valueAsDate = new Date();
 
-        function calculateDuration() {
-            const startDateVal = document.getElementById('startDate').value;
-            const startTimeVal = document.getElementById('startTime').value;
-            const finishDateVal = document.getElementById('finishDate').value;
-            const finishTimeVal = document.getElementById('finishTime').value;
+        // ฟังก์ชันดึงเลข Set อัตโนมัติจาก Counter
+        async function autoFetchSetNumber() {
+            const type = document.getElementById('maintType').value;
+            const setInput = document.getElementById('maintSet');
+            setInput.placeholder = "กำลังโหลด...";
+            try {
+                const res = await fetch(REPORT_SCRIPT_URL);
+                const counts = await res.json();
+                // นำค่าปัจจุบันจาก Sheet + 1 เพื่อเป็นครั้งต่อไป
+                setInput.value = (counts[type] || 0) + 1;
+            } catch (e) { setInput.placeholder = "ใส่เลขครั้งที่"; }
+        }
 
-            if (startDateVal && finishDateVal) {
-                const start = new Date(`${startDateVal}T${startTimeVal || '00:00'}`);
-                const finish = new Date(`${finishDateVal}T${finishTimeVal || '00:00'}`);
-                const diffInMs = finish - start;
-                
-                if (diffInMs < 0) {
-                    document.getElementById('durationDays').value = "รูปแบบวันที่ไม่ถูกต้อง";
-                    document.getElementById('durationDays').classList.replace('text-emerald-400', 'text-red-400');
+        window.onload = autoFetchSetNumber;
+
+        function calculateDuration() {
+            const startD = document.getElementById('startDate').value;
+            const startT = document.getElementById('startTime').value;
+            const finishD = document.getElementById('finishDate').value;
+            const finishT = document.getElementById('finishTime').value;
+            if (startD && finishD) {
+                const start = new Date(`${startD}T${startT}`);
+                const finish = new Date(`${finishD}T${finishT}`);
+                const diff = finish - start;
+                if (diff < 0) {
+                    document.getElementById('durationDays').value = "Error";
                     return;
                 }
-                const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-                document.getElementById('durationDays').value = Number.isInteger(diffInDays) ? diffInDays : diffInDays.toFixed(2);
-                document.getElementById('durationDays').classList.replace('text-red-400', 'text-emerald-400');
+                const days = diff / (1000 * 60 * 60 * 24);
+                document.getElementById('durationDays').value = days.toFixed(2);
             }
         }
 
@@ -137,34 +138,12 @@
         });
 
         async function confirmAndSubmit() {
-            const duration = document.getElementById('durationDays').value;
-            const maintType = document.getElementById('maintType').value;
-            const maintSet = document.getElementById('maintSet').value;
-            const startDate = document.getElementById('startDate').value;
-
-            if (duration === "รูปแบบวันที่ไม่ถูกต้อง" || parseFloat(duration) < 0) {
-                Swal.fire({ icon: 'error', title: 'ข้อมูลไม่ถูกต้อง', text: 'กรุณาตรวจสอบวันและเวลาให้ถูกต้อง', confirmButtonColor: '#10b981' });
-                return;
-            }
-            if (!maintType || !maintSet || !startDate) {
-                Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบ', text: 'กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน', confirmButtonColor: '#10b981' });
-                return;
-            }
-
             const result = await Swal.fire({
-                title: 'ยืนยันการบันทึกข้อมูล?',
-                text: `คุณกำลังบันทึกรายงาน Type ${maintType} ครั้งที่ ${maintSet}`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'ใช่, บันทึกเลย',
-                cancelButtonText: 'ยกเลิกเพื่อแก้ไข'
+                title: 'ยืนยันการบันทึก?',
+                text: `บันทึกข้อมูล Type ${document.getElementById('maintType').value} ครั้งที่ ${document.getElementById('maintSet').value}`,
+                icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981'
             });
-
-            if (result.isConfirmed) {
-                executeSubmit();
-            }
+            if (result.isConfirmed) executeSubmit();
         }
 
         async function executeSubmit() {
@@ -178,36 +157,14 @@
                 duration: document.getElementById('durationDays').value,
                 comment: document.getElementById('comment').value
             };
-
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึกข้อมูล...';
-
+            btn.innerHTML = 'กำลังบันทึก...';
             try {
-                await fetch(REPORT_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                await fetch(REPORT_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+                Swal.fire({ icon: 'success', title: 'สำเร็จ!', timer: 2000 }).then(() => {
+                    window.location.href = 'index.html';
                 });
-
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'บันทึกเรียบร้อย!',
-                    text: 'ข้อมูลรายงานของคุณถูกเก็บลงฐานข้อมูลแล้ว',
-                    timer: 2000,
-                    showConfirmButton: true,
-                    confirmButtonColor: '#10b981'
-                });
-
-                window.location.href = 'index.html';
-
-            } catch (error) {
-                console.error(error);
-                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', confirmButtonColor: '#10b981' });
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save mr-2"></i> บันทึกข้อมูลรายงาน';
-            }
+            } catch (e) { Swal.fire('เกิดข้อผิดพลาด'); btn.disabled = false; }
         }
     </script>
 </body>
