@@ -66,7 +66,7 @@
                         <input type="date" id="offlineStart" class="input-field w-full p-3 rounded-xl border-red-500/20">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">กลับมาเดินเครื่อง (Back to Service)</label>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">สิ้นสุดการหยุด (Offline End)</label>
                         <input type="date" id="offlineEnd" class="input-field w-full p-3 rounded-xl border-emerald-500/20">
                     </div>
                     <div class="flex items-center">
@@ -133,19 +133,28 @@
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
-        // ฟังก์ชันคำนวณจำนวนวันหยุดแสดงผลแบบ Real-time
+        // ฟังก์ชันคำนวณจำนวนวันหยุด (นับรวมวันแรกและวันสุดท้าย)
         function updateOfflineDays() {
             const start = document.getElementById('offlineStart').value;
             const end = document.getElementById('offlineEnd').value;
             const display = document.getElementById('offlineDisplay');
             
             if (start && end) {
-                const diffTime = new Date(end) - new Date(start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays >= 0) {
+                const startDate = new Date(start);
+                const endDate = new Date(end);
+                const diffTime = endDate - startDate;
+                
+                // Logic: (Diff / วัน) + 1 เพื่อให้นับรวมทั้งวันที่เริ่มและวันที่จบ
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (diffDays > 0) {
                     display.innerText = `เลื่อนแผนออกไป +${diffDays} วัน`;
                     display.classList.add('text-amber-400', 'font-bold');
                     return diffDays;
+                } else if (diffDays === 0 || (start === end && start !== "")) {
+                    display.innerText = `เลื่อนแผนออกไป +1 วัน`;
+                    display.classList.add('text-amber-400', 'font-bold');
+                    return 1;
                 }
             }
             display.innerText = "เครื่องหยุดทำงาน 0 วัน";
@@ -177,7 +186,6 @@
             const currentEOH = parseFloat(document.getElementById('currentEOH').value);
             const avgRate = parseFloat(document.getElementById('avgEOHPerDay').value);
             
-            // รับค่าวันหยุด
             const offlineDays = updateOfflineDays();
 
             if (!baseDateInput || isNaN(currentEOH) || isNaN(avgRate) || avgRate <= 0) { 
@@ -217,7 +225,6 @@
                 }
 
                 if (index === 0 || isPreviousOverdue) {
-                    // คำนวณวันปกติ + วันหยุด (Offline Days)
                     let daysUntil = Math.floor((item.limit - (currentEOH % 36000)) / avgRate) + offlineDays;
                     startDate = new Date(baseDate);
                     startDate.setDate(baseDate.getDate() + daysUntil);
@@ -247,12 +254,12 @@
                         recordDate: baseDateInput, 
                         currentEOH: currentEOH, 
                         avgRate: avgRate,
-                        offlineDays: offlineDays, // ส่งค่าวันหยุดไปบันทึก
+                        offlineDays: offlineDays,
                         offlineStart: document.getElementById('offlineStart').value,
                         offlineEnd: document.getElementById('offlineEnd').value
                     })
                 });
-                alert("บันทึกข้อมูลพยากรณ์เรียบร้อย (รวมวันหยุด " + offlineDays + " วัน)");
+                alert("บันทึกข้อมูลพยากรณ์เรียบร้อย (รวมวันหยุดตามปฏิทิน " + offlineDays + " วัน)");
                 fetchCounterInfo();
             } catch (e) { 
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อ Google Sheets"); 
