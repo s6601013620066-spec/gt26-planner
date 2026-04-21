@@ -128,12 +128,12 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqe5sHUEv6oMb2D5sdJUFWb-Hb8bENOtilvzaPw5gffmOO8fU8q6fgaxeqfquejkdd/exec';
+        // อัปเดต SCRIPT_URL เป็นลิงก์ใหม่ที่คุณให้มา
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7FXmy1jiat9pHO06_mmjcyCfDwJolDIvT5fl9-58yCSrDwp6RVgbuT80an9hrwitE/exec';
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/13WHRfiv_sck1McHVGOm_8BzDhU-sqy80JMIerBt4xRo/edit#gid=0';
 
         document.getElementById('baseDate').valueAsDate = new Date();
 
-        // ฟังก์ชันคำนวณจำนวนวันหยุด (นับรวมวันแรกและวันสุดท้าย)
         function updateOfflineDays() {
             const start = document.getElementById('offlineStart').value;
             const end = document.getElementById('offlineEnd').value;
@@ -143,8 +143,6 @@
                 const startDate = new Date(start);
                 const endDate = new Date(end);
                 const diffTime = endDate - startDate;
-                
-                // Logic: (Diff / วัน) + 1 เพื่อให้นับรวมทั้งวันที่เริ่มและวันที่จบ
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 
                 if (diffDays > 0) {
@@ -177,7 +175,6 @@
         }
 
         window.onload = fetchCounterInfo;
-
         function goToIndex2() { window.location.href = 'index2.html'; }
         function openGoogleSheet() { window.open(GOOGLE_SHEET_URL, '_blank'); }
 
@@ -199,15 +196,19 @@
             btn.disabled = true;
 
             const schedule = [
-                { id: 'typeA1', limit: 9000, duration: 8 },
-                { id: 'typeB', limit: 18000, duration: 9 },
-                { id: 'typeA2', limit: 27000, duration: 8 },
-                { id: 'typeC', limit: 36000, duration: 37 }
+                { id: 'typeA1', name: 'Type A1 (9k)', limit: 9000, duration: 8 },
+                { id: 'typeB', name: 'Type B (18k)', limit: 18000, duration: 9 },
+                { id: 'typeA2', name: 'Type A2 (27k)', limit: 27000, duration: 8 },
+                { id: 'typeC', name: 'Type C (36k)', limit: 36000, duration: 37 }
             ];
 
             const baseDate = new Date(baseDateInput);
             let lastFinishDate = null;
             let isPreviousOverdue = false;
+
+            let nextMaintenanceLabel = "";
+            let predictedStartStr = "";
+            let predictedFinishStr = "";
 
             schedule.forEach((item, index) => {
                 const dayEl = document.getElementById(`${item.id}_days`);
@@ -229,6 +230,10 @@
                     startDate = new Date(baseDate);
                     startDate.setDate(baseDate.getDate() + daysUntil);
                     isPreviousOverdue = false;
+
+                    if (nextMaintenanceLabel === "") {
+                        nextMaintenanceLabel = item.name;
+                    }
                 } else {
                     let daysToRun = Math.floor(9000 / avgRate);
                     startDate = new Date(lastFinishDate);
@@ -238,6 +243,11 @@
                 const finishDate = new Date(startDate);
                 finishDate.setDate(startDate.getDate() + item.duration);
                 const diffDays = Math.ceil((startDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                if (item.name === nextMaintenanceLabel) {
+                    predictedStartStr = startDate.toLocaleDateString('th-TH');
+                    predictedFinishStr = finishDate.toLocaleDateString('th-TH');
+                }
 
                 dayEl.innerText = `${diffDays.toLocaleString()} วัน`;
                 startEl.innerText = "เริ่ม: " + startDate.toLocaleDateString('th-TH');
@@ -254,12 +264,15 @@
                         recordDate: baseDateInput, 
                         currentEOH: currentEOH, 
                         avgRate: avgRate,
-                        offlineDays: offlineDays,
-                        offlineStart: document.getElementById('offlineStart').value,
-                        offlineEnd: document.getElementById('offlineEnd').value
+                        nextType: nextMaintenanceLabel,       // ลงคอลัมน์ E
+                        startDate: predictedStartStr,         // ลงคอลัมน์ F
+                        finishDate: predictedFinishStr,       // ลงคอลัมน์ G
+                        offlineDays: offlineDays,             // ลงคอลัมน์ H
+                        offlineStart: document.getElementById('offlineStart').value, // ลงคอลัมน์ I
+                        offlineEnd: document.getElementById('offlineEnd').value      // ลงคอลัมน์ J
                     })
                 });
-                alert("บันทึกข้อมูลพยากรณ์เรียบร้อย (รวมวันหยุดตามปฏิทิน " + offlineDays + " วัน)");
+                alert("บันทึกข้อมูลพยากรณ์เรียบร้อย\n- รอบถัดไป: " + nextMaintenanceLabel + "\n- วันหยุดสะสม: " + offlineDays + " วัน");
                 fetchCounterInfo();
             } catch (e) { 
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อ Google Sheets"); 
